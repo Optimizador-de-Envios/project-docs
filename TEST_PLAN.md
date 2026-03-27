@@ -53,14 +53,11 @@ Se utilizará SerenityBDD con Cucumber para automatizar los escenarios BDD escri
 Se utilizará Karate para validar directamente los contratos de los endpoints REST expuestos por el backend, verificando códigos HTTP, estructura de respuesta, manejo de errores y consistencia de datos persistidos en PostgreSQL.
 
 Endpoints cubiertos en este ciclo:
-- `GET /locations/autocomplete`
-- `POST /pedido`
-- `POST /pedidos/prioridad`
-- `POST /recomendacion`
-- `POST /pedidos/confirmar`
+- `POST /api/v1/pedido` — recibe origen, destino, peso y prioridad; retorna la recomendación principal y las alternativas
+- `POST /api/v1/pedido/confirmar`
 
 **Pruebas de rendimiento (k6)**
-Se utilizará k6 para validar que el motor de recomendación responde dentro de un umbral de tiempo aceptable bajo carga concurrente. Las pruebas se ejecutarán sobre el endpoint `POST /recomendacion`, que es la operación más intensiva del sistema al consultar y comparar cotizaciones de los tres proveedores simultáneamente.
+Se utilizará k6 para validar que el motor de recomendación responde dentro de un umbral de tiempo aceptable bajo carga concurrente. Las pruebas se ejecutarán sobre el endpoint `POST /api/v1/pedido`, que es la operación más intensiva del sistema al consultar y comparar cotizaciones de los tres proveedores simultáneamente.
 
 ### 4.2 Tipos de casos de prueba
 
@@ -119,7 +116,7 @@ Una Historia de Usuario se considera probada y cerrada cuando:
 |---|---|
 | **SerenityBDD + Cucumber** | Automatización de pruebas funcionales end-to-end basadas en escenarios Gherkin (criterios de aceptación de las HU) |
 | **Karate** | Pruebas de API: validación de contratos de endpoints, códigos HTTP, estructura de respuesta y datos persistidos en PostgreSQL |
-| **k6** | Pruebas de rendimiento: validación del tiempo de respuesta del motor de recomendación bajo carga concurrente (`POST /recomendacion`) |
+| **k6** | Pruebas de rendimiento: validación del tiempo de respuesta del motor de recomendación bajo carga concurrente (`POST /api/v1/pedido`) |
 | **GitHub Projects** | Gestión de casos de prueba, reporte de defectos y trazabilidad HU → casos de prueba |
 | **Git** | Control de versiones de los scripts de prueba |
 
@@ -127,7 +124,7 @@ Una Historia de Usuario se considera probada y cerrada cuando:
 
 ## 8. Roles y Responsabilidades
 
-### QA
+### QA: Nahuel Lemes
 
 - Diseño de la matriz de datos de prueba
 - Diseño y documentación de casos de prueba (positivos, negativos, de borde y de desempate)
@@ -139,7 +136,7 @@ Una Historia de Usuario se considera probada y cerrada cuando:
 - Reporte y seguimiento de defectos
 - Generación de métricas e informe final
 
-### DEV
+### DEV: Santiago Angarita
 
 - Implementación de endpoints y lógica de negocio
 - Configuración de datos mock de proveedores (FedEx, DHL, Local)
@@ -189,10 +186,10 @@ La estimación de esfuerzo de QA se calcula tomando como referencia los Story Po
 | Escenarios Gherkin (.feature) | Escenarios BDD alineados a los criterios de aceptación de cada HU |
 | Scripts de automatización SerenityBDD | Implementación de los escenarios funcionales automatizados |
 | Colecciones Karate | Scripts de prueba de API para cada endpoint cubierto |
-| Scripts k6 | Script de prueba de rendimiento para `POST /recomendacion` |
+| Scripts k6 | Script de prueba de rendimiento para `POST /api/v1/pedido` |
 | Reporte de ejecución SerenityBDD | Reporte HTML generado por Serenity con resultados de pruebas funcionales |
 | Reporte de ejecución Karate | Reporte de resultados de pruebas de API |
-| Reporte k6 | Métricas de rendimiento: tiempo de respuesta, throughput y tasa de error bajo carga concurrente |
+| Reporte k6 | Métricas de rendimiento: tiempo de respuesta, throughput y tasa de error bajo carga concurrente (`POST /api/v1/pedido`) |
 | Informe de defectos | Listado de defectos encontrados con severidad, prioridad y estado |
 | Métricas de cobertura | % de casos ejecutados, % pasados, % fallidos, defectos por HU |
 
