@@ -1,5 +1,5 @@
 # TEST PLAN — Optimizador de Envíos
-## Microsprint: HU-01, HU-02, HU-03, HU-05
+## Microsprint 1 (2 días): HU-01, HU-02 | Microsprint 2 (2 días): HU-03, HU-05
 
 ---
 
@@ -19,7 +19,7 @@
 
 El Optimizador de Envíos es una herramienta logística dirigida a empresas y personas que necesitan enviar productos dentro de Colombia y no saben qué proveedor de transporte elegir. El sistema automatiza la selección del proveedor más conveniente entre FedEx, DHL y un proveedor local, evaluando costo y tiempo de entrega según la prioridad del usuario (económico o rápido). Los proveedores se modelan con datos simulados (mock) en esta versión del MVP.
 
-Este plan de pruebas cubre la versión 1.0 del MVP, que incluye las funcionalidades de registro de pedido, selección de prioridad, obtención de recomendación principal y confirmación del proveedor con persistencia en PostgreSQL. El flujo de datos va desde el estado global del frontend (Zustand) hasta PostgreSQL una vez el usuario confirma su selección.
+Este plan de pruebas cubre la versión 1.0 del MVP, distribuido en dos microsprints de dos días cada uno. El **Microsprint 1** incluye el registro de pedido y la selección de prioridad (HU-01, HU-02). El **Microsprint 2** incluye la obtención de la recomendación principal y la confirmación del proveedor con persistencia en PostgreSQL (HU-03, HU-05). El flujo de datos va desde el estado global del frontend (Zustand) hasta PostgreSQL una vez el usuario confirma su selección.
 
 ---
 
@@ -27,14 +27,23 @@ Este plan de pruebas cubre la versión 1.0 del MVP, que incluye las funcionalida
 
 ### 3.1 Historias de Usuario que serán validadas
 
+**Microsprint 1 (2 días)**
+
 | ID | Historia de Usuario | Story Points |
 |---|---|---|
 | HU-01 | Registrar pedido de envío | 5 |
 | HU-02 | Definir prioridad del envío | 3 |
+| **Subtotal MS1** | | **8** |
+
+**Microsprint 2 (2 días)**
+
+| ID | Historia de Usuario | Story Points |
+|---|---|---|
 | HU-03 | Obtener recomendación principal de proveedor de envío | 8 |
 | HU-05 | Seleccionar y confirmar proveedor | 5 |
+| **Subtotal MS2** | | **13** |
 
-### 3.2 Fuera del ciclo
+### 3.2 Fuera del MVP
 
 | ID | Historia de Usuario |
 |---|---|
@@ -155,24 +164,29 @@ Una Historia de Usuario se considera probada y cerrada cuando:
 
 ## 9. Cronograma y Estimación
 
-La estimación de esfuerzo de QA se calcula tomando como referencia los Story Points del microsprint.
+La estimación de esfuerzo de QA se calcula tomando como referencia los Story Points de cada microsprint.
+
+### Microsprint 1 (2 días) — HU-01, HU-02
 
 | HU | Story Points | Tareas QA | Esfuerzo estimado QA |
 |---|---|---|---|
 | HU-01 | 5 | 7 subtasks (T13–T19) | Alto |
 | HU-02 | 3 | 7 subtasks (T13–T19) | Medio |
+| **Subtotal MS1** | **8** | **14 subtasks** | **Medio-Alto** |
+
+### Microsprint 2 (2 días) — HU-03, HU-05
+
+| HU | Story Points | Tareas QA | Esfuerzo estimado QA |
+|---|---|---|---|
 | HU-03 | 8 | 7 subtasks (T13–T19) | Alto |
 | HU-05 | 5 | 7 subtasks (T12–T18) | Alto |
+| **Subtotal MS2** | **13** | **14 subtasks** | **Alto** |
+
+### Total MVP
+
+| | Story Points | Tareas QA | Esfuerzo estimado QA |
+|---|---|---|---|
 | **Total** | **21** | **28 subtasks** | **Alto** |
-
-**Distribución sugerida:**
-
-| Fase | Actividad |
-|---|---|
-| Fase 1 — Diseño | Diseño de matrices de datos y casos de prueba (paralelo al desarrollo) |
-| Fase 2 — Automatización | Implementación de scripts SerenityBDD y Karate |
-| Fase 3 — Ejecución | Ejecución de pruebas sobre build estable en ambiente QA |
-| Fase 4 — Cierre | Reporte de defectos, métricas y entregables finales |
 
 ---
 
@@ -180,7 +194,7 @@ La estimación de esfuerzo de QA se calcula tomando como referencia los Story Po
 
 | Artefacto | Descripción |
 |---|---|
-| `TEST_PLAN.md` | Este documento — plan de pruebas del microsprint |
+| `TEST_PLAN.md` | Este documento — plan de pruebas de los microsprints del MVP |
 | Matrices de datos de prueba | Tablas con combinaciones de datos válidos e inválidos por HU |
 | Casos de prueba documentados | Descripción, precondiciones, pasos, resultado esperado y resultado obtenido |
 | Escenarios Gherkin (.feature) | Escenarios BDD alineados a los criterios de aceptación de cada HU |
