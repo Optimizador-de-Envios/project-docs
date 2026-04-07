@@ -26,13 +26,14 @@ Construir una herramienta logística que automatice la selección del proveedor 
 | **O4** | Unificar y proveer estimaciones de precio y tiempo de entrega para entregar al cliente la opción más adecuada a sus requerimientos. |
 | **O5** | Permitir la visualización de la ruta estimada del envío en un mapa para mejorar la comprensión del recorrido entre origen y destino. |
 | **O6** | Asociar pedidos confirmados a usuarios autenticados para habilitar trazabilidad básica e historial de solicitudes. |
+| **O7** | Proteger el uso de la aplicación mediante inicio de sesión obligatorio y cierre de sesión disponible para usuarios autenticados. |
 
 ---
 
 ## 3. Reglas de Negocio y Funcionales Generales
 
-- **Regla 1:** El sistema **solo debe operar** para envíos dentro de **Colombia**.
-- **Regla 2:** Para calcular una cotización, el usuario debe ingresar **obligatoriamente origen, destino y peso del paquete**.
+- **Regla 1:** El sistema **solo debe operar** para envíos cuyo origen y destino estén dentro de **Colombia**.
+- **Regla 2:** Para calcular una cotización, el usuario autenticado debe ingresar **obligatoriamente origen, destino y peso del paquete**.
 - **Regla 3:** El sistema no debe permitir calcular opciones si el paquete supera los límites admitidos por los proveedores disponibles; **el peso debe ser mayor o igual a 0,001 Kg y menor o igual a 70 Kg**.
 - **Regla 4:** El usuario debe seleccionar una prioridad de envío (menor costo o menor tiempo) para que el sistema pueda generar la recomendación.
 - **Regla 5:** Si la **prioridad es menor costo**, el **sistema** debe **recomendar la opción de menor costo** disponible.
@@ -40,10 +41,10 @@ Construir una herramienta logística que automatice la selección del proveedor 
 - **Regla 7:** Si **existe empate en el menor costo**, el sistema debe **recomendar la opción con menor tiempo de entrega** entre las empatadas.
 - **Regla 8:** Si **existe empate en el menor tiempo de entrega**, el sistema debe **recomendar la opción con menor costo** entre las empatadas.
 - **Regla 9:** El sistema debe **mostrar opciones alternativas** distintas a la recomendación principal para permitir la comparación si se da el caso.
-- **Regla 10:** El usuario debe **seleccionar un proveedor** para poder continuar con el proceso del pedido.
-- **Regla 11:** El sistema debe **persistir la información del pedido** cuando el usuario seleccione y confirme un proveedor para continuar con el proceso.
+- **Regla 10:** El usuario autenticado debe **seleccionar un proveedor** para poder continuar con el proceso del pedido.
+- **Regla 11:** El sistema debe **persistir la información del pedido** cuando el usuario autenticado seleccione y confirme un proveedor para continuar con el proceso.
 - **Regla 12:** El sistema debe **mostrar la ruta del envío únicamente si existen coordenadas válidas** de origen y destino.
-- **Regla 13:** La ruta debe ser calculada utilizando un servicio externo de enrutamiento, definido para el MVP v2 como **OpenRouteService**.
+- **Regla 13:** **OpenRouteService** debe utilizarse como servicio externo para el **autocompletado de ubicaciones** de origen/destino y para el **cálculo de la ruta estimada** del envío.
 - **Regla 14:** Las coordenadas deben ser transformadas al formato requerido por la librería de mapas definida para el MVP v2, es decir, **Leaflet** en formato **latitud y longitud**.
 - **Regla 15:** El mapa debe ajustarse automáticamente para mostrar toda la ruta calculada.
 - **Regla 16:** El sistema debe mostrar marcadores para el origen y el destino del envío.
@@ -53,11 +54,12 @@ Construir una herramienta logística que automatice la selección del proveedor 
 - **Regla 20:** Solo los usuarios previamente registrados pueden iniciar sesión en la plataforma.
 - **Regla 21:** El sistema debe validar el correo electrónico y la contraseña antes de conceder acceso.
 - **Regla 22:** El sistema no debe permitir el acceso si las credenciales son inválidas.
-- **Regla 23:** Solo un usuario autenticado puede acceder a información personalizada de su cuenta.
+- **Regla 23:** El usuario debe iniciar sesión para acceder a la aplicación y utilizar sus funcionalidades operativas: registrar pedido, seleccionar prioridad, obtener recomendación, visualizar alternativas y ruta, confirmar proveedor y consultar historial.
 - **Regla 24:** El sistema debe asociar cada pedido confirmado al usuario autenticado que realizó la operación.
 - **Regla 25:** El usuario autenticado solo puede visualizar los pedidos asociados a su propia cuenta.
 - **Regla 26:** El sistema debe mostrar como mínimo origen, destino, peso, prioridad y proveedor seleccionado por cada pedido.
 - **Regla 27:** Si el usuario no tiene pedidos registrados, el sistema debe informar que no existen pedidos asociados a su cuenta.
+- **Regla 28:** El sistema debe permitir que el usuario autenticado cierre sesión; luego del cierre de sesión, no debe permitir el uso de funcionalidades protegidas hasta que el usuario vuelva a iniciar sesión.
 
 > **Nota:** La numeración de las reglas del MVP v2 se normaliza dentro del PRD para mantener un único catálogo de reglas.
 
@@ -69,6 +71,7 @@ Construir una herramienta logística que automatice la selección del proveedor 
 
 ### 4.1 In Scope
 - **Registro de datos del envío:** el sistema permite ingresar origen, destino y peso del pedido.
+- **Autocompletado de ubicaciones:** el sistema permite buscar y seleccionar origen y destino mediante OpenRouteService, restringiendo las ubicaciones a Colombia.
 - **Selector de prioridad del envío**: el sistema permite elegir si se desea priorizar **menor costo** o **menor tiempo de entrega**.
 - **Motor de evaluación centralizado:** el sistema compara las opciones de transporte disponibles (*FedEx*, *DHL* y *proveedores locales*) y evalúa considerando costo y tiempo estimado.
 - **Generación de recomendación principal:** el sistema devuelve la opción más adecuada según la prioridad seleccionada por el usuario.
@@ -76,7 +79,8 @@ Construir una herramienta logística que automatice la selección del proveedor 
 - **Selección de proveedor:** el usuario puede elegir una de las opciones disponibles para continuar con el proceso del pedido.
 - **Visualización de ruta del envío:** el sistema muestra en un mapa la ruta estimada entre el origen y el destino, incluyendo marcadores y ajuste automático del mapa.
 - **Registro de usuarios:** el sistema permite crear una cuenta con nombre, correo electrónico único y contraseña válida.
-- **Inicio de sesión:** el sistema permite autenticar usuarios registrados y proteger funcionalidades privadas.
+- **Inicio de sesión obligatorio:** el sistema permite autenticar usuarios registrados y protege todas las funcionalidades operativas de la aplicación.
+- **Cierre de sesión:** el sistema permite cerrar la sesión activa y bloquea nuevamente el acceso a funcionalidades protegidas hasta un nuevo inicio de sesión.
 - **Consulta de pedidos del usuario:** el sistema permite que un usuario autenticado consulte únicamente los pedidos asociados a su cuenta.
 
 ### 4.2 Out of Scope
@@ -89,6 +93,17 @@ Construir una herramienta logística que automatice la selección del proveedor 
 > 💡 **Nota sobre proveedores:** En el MVP, los proveedores (FedEx, DHL y un proveedor local representativo) 
 > se modelarán con datos simulados (mock). El proveedor local representa una empresa de mensajería 
 > regional colombiana con tarifas y tiempos predefinidos en el sistema.
+
+### 4.3 Flujo Funcional Principal
+
+1. El usuario debe registrarse o iniciar sesión para acceder a la aplicación.
+2. Si no existe una sesión activa, el sistema no permite utilizar las funcionalidades protegidas y debe redirigir o solicitar autenticación.
+3. Con sesión activa, el usuario ingresa origen y destino dentro de Colombia, apoyado por el autocompletado de ubicaciones de OpenRouteService.
+4. El usuario ingresa el peso del paquete, selecciona la prioridad de envío y solicita el cálculo de opciones disponibles.
+5. El sistema compara los proveedores mock definidos para el MVP, aplica las reglas de recomendación y desempate, y muestra la recomendación principal junto con alternativas si existen.
+6. Si existen coordenadas válidas, el sistema calcula la ruta mediante OpenRouteService y la visualiza en Leaflet con marcadores de origen/destino y ajuste automático del mapa.
+7. El usuario selecciona y confirma un proveedor; el sistema persiste el pedido asociado al usuario autenticado.
+8. El usuario autenticado puede consultar su historial de pedidos y cerrar sesión cuando lo requiera.
 
 ---
 
@@ -123,7 +138,7 @@ Construir una herramienta logística que automatice la selección del proveedor 
 
 **Reglas relacionadas**
 - **Regla 12:** El sistema debe mostrar la ruta únicamente si existen coordenadas válidas de origen y destino.
-- **Regla 13:** La ruta debe ser calculada utilizando OpenRouteService.
+- **Regla 13:** OpenRouteService debe utilizarse como servicio externo para autocompletado de ubicaciones y cálculo de ruta estimada.
 - **Regla 14:** Las coordenadas deben transformarse al formato requerido por Leaflet.
 - **Regla 15:** El mapa debe ajustarse automáticamente para mostrar toda la ruta.
 - **Regla 16:** El sistema debe mostrar marcadores para el origen y el destino.
@@ -198,19 +213,21 @@ Construir una herramienta logística que automatice la selección del proveedor 
 | --- | --- |
 | **Como** | Usuario registrado del sistema |
 | **Quiero** | Iniciar sesión en la plataforma |
-| **Para** | Acceder a mis pedidos y continuar con mi proceso dentro de la aplicación |
+| **Para** | Acceder a la aplicación, utilizar sus funcionalidades y continuar con mi proceso de envío |
 
 **Valor de Negocio**
 - Permite autenticar de forma segura a los usuarios registrados.
 - Habilita el acceso a funcionalidades personalizadas por usuario.
 - Protege la información asociada a cada cuenta.
 - Prepara la plataforma para la consulta de historial de pedidos.
+- Permite finalizar la sesión activa cuando el usuario lo requiera.
 
 **Reglas relacionadas**
 - **Regla 20:** Solo los usuarios previamente registrados pueden iniciar sesión en la plataforma.
 - **Regla 21:** El sistema debe validar el correo electrónico y la contraseña antes de conceder acceso.
 - **Regla 22:** El sistema no debe permitir el acceso si las credenciales son inválidas.
-- **Regla 23:** Solo un usuario autenticado puede acceder a información personalizada de su cuenta.
+- **Regla 23:** El usuario debe iniciar sesión para acceder a la aplicación y utilizar sus funcionalidades operativas.
+- **Regla 28:** El sistema debe permitir que el usuario autenticado cierre sesión.
 
 **Criterios de Aceptación**
 
@@ -218,14 +235,17 @@ Construir una herramienta logística que automatice la selección del proveedor 
 | --- | --- |
 | Inicio de sesión exitoso | El sistema permite el acceso a la cuenta y habilita las funcionalidades asociadas al usuario autenticado. |
 | Intento de inicio de sesión con credenciales inválidas | El sistema no permite el acceso e informa que las credenciales son inválidas. |
-| Intento de acceso a funcionalidad privada sin autenticación | El sistema no permite el acceso e informa que la persona debe autenticarse para continuar. |
+| Intento de acceso a funcionalidad protegida sin autenticación | El sistema no permite el acceso e informa que la persona debe autenticarse para continuar. |
+| Cierre de sesión exitoso | El sistema finaliza la sesión activa y bloquea el acceso a funcionalidades protegidas hasta un nuevo inicio de sesión. |
 
 **Definition of Done (DoD)**
 - La funcionalidad de inicio de sesión está implementada.
 - El sistema permite autenticarse con credenciales válidas.
 - El sistema bloquea el acceso con credenciales inválidas.
-- El sistema protege las funcionalidades privadas para usuarios no autenticados.
+- El sistema protege las funcionalidades operativas para usuarios no autenticados.
+- El sistema permite cerrar sesión y revoca el acceso a funcionalidades protegidas hasta un nuevo inicio de sesión.
 - Se cumplen los criterios de aceptación definidos.
+- La historia fue validada por QA.
 
 ---
 
@@ -315,5 +335,5 @@ Construir una herramienta logística que automatice la selección del proveedor 
 | **R4: Acoplamiento fuerte a proveedores específicos** | Una implementación poco flexible puede dificultar la escalabilidad (ejemplo: agregar un nuevo proveedor) en futuras versiones. | 2 | 3 | Medio (6) | Diseñar el sistema con una arquitectura modular y orientada a servicios, utilizando interfaces y abstracciones para facilitar la integración de nuevos proveedores sin afectar la lógica central. |
 | **R5: Inconsistencia en los datos de entrada** | Si el sistema no gestiona los tipos de datos de forma adecuada (ejemplo: tipos de medidas en peso, origen y destino correctos, tipo de moneda) podría verse afectado el cálculo de las opciones disponibles. | 3 | 2 | Medio (6) | Implementar validaciones estrictas en la entrada de datos, incluyendo formatos, rangos permitidos y tipos de datos, para asegurar que la información ingresada sea consistente y adecuada para el procesamiento. |
 | **R6: Manejo insuficiente de casos límite** | Destinos sin cobertura o pesos no admitidos por los proveedores pueden generar fallos si no se controlan adecuadamente. | 3 | 1 | Bajo (3) | Desarrollar un sistema de manejo de errores robusto que identifique y gestione adecuadamente los casos límite, proporcionando mensajes claros al usuario y evitando que el sistema falle ante situaciones no contempladas. |
-| **R7: Dependencia del servicio externo de enrutamiento** | Si OpenRouteService no responde, responde con errores o cambia sus límites de uso, la visualización de ruta puede fallar aunque la cotización del envío funcione correctamente. | 2 | 2 | Medio (4) | Encapsular la integración con el servicio externo, manejar errores con mensajes claros y permitir que el flujo principal de cotización continúe sin visualización de ruta cuando no haya datos suficientes. |
+| **R7: Dependencia del servicio externo OpenRouteService** | Si OpenRouteService no responde, responde con errores o cambia sus límites de uso, el autocompletado de ubicaciones o la visualización de ruta pueden fallar aunque la lógica de recomendación funcione correctamente. | 2 | 2 | Medio (4) | Encapsular la integración con el servicio externo, manejar errores con mensajes claros, usar mocks/stubs cuando corresponda y permitir que el flujo principal de cotización continúe sin visualización de ruta cuando no haya datos suficientes. |
 | **R8: Exposición de información entre usuarios** | Una implementación deficiente de autenticación o filtrado de pedidos podría permitir que un usuario consulte pedidos de otra cuenta. | 3 | 2 | Medio (6) | Validar autorización en backend, asociar pedidos al usuario autenticado, cubrir casos de acceso no autorizado con pruebas y evitar depender únicamente de controles del frontend. |
