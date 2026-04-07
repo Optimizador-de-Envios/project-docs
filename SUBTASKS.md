@@ -220,4 +220,172 @@ Permitir al usuario seleccionar un proveedor de envío y confirmar su selección
 - **QA**: Esfuerzo medio. Se deben validar casos funcionales de confirmación del pedido, incluyendo validación de selección, manejo de errores y persistencia. El proceso es más complejo debido a la confirmación del pedido, por lo que requiere pruebas detalladas para asegurar la correcta aplicación de las reglas y la persistencia de los datos.
 
 ---
+
+# HU-06 | Visualizar ruta del envío en el mapa
+
+## Objetivo de la historia
+Permitir al usuario visualizar en el mapa la ruta estimada entre el origen y el destino del envío, usando la geometría devuelta por el flujo de recomendación y respetando el formato requerido por Leaflet.
+
+## Subtareas DEV
+
+### Frontend
+- **HU06-T07** | Implementar el componente de mapa con Leaflet para mostrar la ruta del envío.
+- **HU06-T08** | Dibujar la polyline de la ruta y los marcadores de origen y destino.
+- **HU06-T09** | Ajustar automáticamente los bounds y el zoom del mapa para mostrar toda la ruta.
+- **HU06-T10** | Mostrar el estado vacío cuando no existan datos suficientes para renderizar el mapa.
+- **HU06-T11** | Integrar el mapa dentro de la vista donde se muestra la recomendación o confirmación del envío.
+- **HU06-T12** | Realizar pruebas unitarias y de cobertura para el componente y su orquestación.
+
+## Subtareas QA
+
+### Análisis y diseño
+- **HU06-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
+- **HU06-T14 (QA)** | Diseñar casos de prueba para visualización de ruta, ajuste automático, conversión de coordenadas y ausencia de datos.
+
+### Validación técnica y funcional
+- **HU06-T15 (QA)** | Verificar el contrato de ruta expuesto por el backend y su comportamiento ante coordenadas válidas e inválidas.
+- **HU06-T16 (QA)** | Validar en frontend el dibujo correcto de la ruta, los marcadores y el ajuste automático del mapa.
+- **HU06-T17 (QA)** | Verificar el manejo correcto de errores o escenarios sin datos suficientes.
+- **HU06-T18 (QA)** | Validar la conversión de coordenadas y la consistencia visual en distintas resoluciones.
+- **HU06-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+
+## Estimación: 5 puntos
+
+### Justificación:
+- **DEV:** Esfuerzo medio-alto. Se requiere integrar un servicio externo de rutas, normalizar la geometría y adaptar el frontend con Leaflet para mostrar la ruta y los marcadores. Aunque el alcance es acotado, depende de manejo correcto de coordenadas y de una respuesta consistente para el mapa.
+- **QA**: Esfuerzo medio. Se deben validar escenarios de visualización correcta, ajuste del mapa, conversión de coordenadas y manejo de ausencia de datos. La complejidad está más en la validación visual y de integración que en la lógica de negocio.
+
+---
+
+# HU-07 | Registrar usuario
+
+## Objetivo de la historia
+Permitir que una persona cree una cuenta en el user-service con nombre, email y contraseña válida para habilitar el inicio de sesión y la asociación futura de pedidos.
+
+## Subtareas DEV
+
+### Backend
+- **HU07-T01** | Crear los DTOs necesarios para el registro de usuario con validaciones de entrada.
+- **HU07-T02** | Implementar la entidad Usuario con unicidad por email y persistencia en la base de datos del user-service.
+- **HU07-T03** | Validar campos obligatorios y la longitud mínima de la contraseña.
+- **HU07-T04** | Implementar el hash de contraseña con BCrypt antes de persistir el usuario.
+- **HU07-T05** | Exponer el endpoint `POST /api/users/register` conforme al contrato definido.
+- **HU07-T06** | Mapear errores de validación y conflicto de email duplicado a respuestas `400` y `409`.
+- **HU07-T07** | Realizar pruebas unitarias e integración sobre el caso de uso y el endpoint.
+
+### Frontend
+- **HU07-T08** | Implementar el formulario de registro con nombre, correo y contraseña.
+- **HU07-T09** | Validar en UI los campos obligatorios y la regla mínima de la contraseña.
+- **HU07-T10** | Consumir el `authApiService` para registrar el usuario.
+- **HU07-T11** | Mostrar feedback de éxito y redirigir al login después de registrar la cuenta.
+- **HU07-T12** | Realizar pruebas unitarias y de cobertura para el formulario y su flujo.
+
+## Subtareas QA
+
+### Análisis y diseño
+- **HU07-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
+- **HU07-T14 (QA)** | Diseñar casos de prueba para registro exitoso, email duplicado, campos vacíos y contraseña inválida.
+
+### Validación técnica y funcional
+- **HU07-T15 (QA)** | Verificar el funcionamiento del endpoint `POST /api/users/register`.
+- **HU07-T16 (QA)** | Validar que el sistema rechace emails duplicados y campos obligatorios vacíos.
+- **HU07-T17 (QA)** | Verificar que la contraseña cumpla la longitud mínima y se persista cifrada.
+- **HU07-T18 (QA)** | Validar el formulario de registro y la navegación posterior al alta exitosa.
+- **HU07-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+
+## Estimación: 5 puntos
+
+### Justificación:
+- **DEV:** Esfuerzo medio. Aunque el flujo es directo, implica modelar el dominio de usuario, aplicar validaciones, cifrar la contraseña y exponer un contrato estable para registro. En frontend, el formulario y sus validaciones también requieren coordinación con el contrato del backend.
+- **QA**: Esfuerzo medio. Los escenarios son claros, pero hay varios puntos a validar: unicidad del email, obligatorios, longitud mínima y respuesta del sistema ante errores. No es una historia trivial porque toca persistencia y seguridad básica.
+
+---
+
+# HU-08 | Iniciar sesión
+
+## Objetivo de la historia
+Permitir que un usuario registrado inicie sesión y reciba un JWT compatible con el shipment-service para acceder a funcionalidades privadas.
+
+## Subtareas DEV
+
+### Backend
+- **HU08-T01** | Crear los DTOs necesarios para el login y la respuesta de autenticación.
+- **HU08-T02** | Implementar el caso de uso de inicio de sesión validando credenciales contra el usuario persistido.
+- **HU08-T03** | Implementar la emisión del JWT con los claims mínimos definidos en el contrato compartido.
+- **HU08-T04** | Exponer el endpoint `POST /api/users/login` conforme al contrato definido.
+- **HU08-T05** | Mapear errores de payload inválido y credenciales inválidas a respuestas `400` y `401`.
+- **HU08-T06** | Realizar pruebas unitarias e integración sobre autenticación y emisión del token.
+
+### Frontend
+- **HU08-T07** | Implementar el formulario de login con correo y contraseña.
+- **HU08-T08** | Persistir la sesión autenticada en el auth store y restaurarla al recargar la página.
+- **HU08-T09** | Consumir el `authApiService` para iniciar sesión y manejar la respuesta JWT.
+- **HU08-T10** | Proteger rutas y redirigir al usuario cuando no exista una sesión válida.
+- **HU08-T11** | Manejar el estado de error para credenciales inválidas y limpiar la sesión al logout.
+- **HU08-T12** | Realizar pruebas unitarias y de cobertura para el flujo de login y protección de rutas.
+
+## Subtareas QA
+
+### Análisis y diseño
+- **HU08-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
+- **HU08-T14 (QA)** | Diseñar casos de prueba para login exitoso, credenciales inválidas y acceso a rutas protegidas.
+
+### Validación técnica y funcional
+- **HU08-T15 (QA)** | Verificar el funcionamiento del endpoint `POST /api/users/login`.
+- **HU08-T16 (QA)** | Validar que el JWT devuelto cumpla el contrato de claims y expiración definida.
+- **HU08-T17 (QA)** | Verificar la protección de rutas privadas y el comportamiento ante ausencia de sesión.
+- **HU08-T18 (QA)** | Validar el manejo de errores y la restauración de sesión en frontend.
+- **HU08-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+
+## Estimación: 3 puntos
+
+### Justificación:
+- **DEV:** Esfuerzo bajo-medio. El flujo de login reutiliza gran parte de la base creada para registro, añadiendo validación de credenciales y emisión de JWT. En frontend, el trabajo principal está en persistir la sesión y proteger rutas, que es más acotado que el registro completo.
+- **QA**: Esfuerzo bajo-medio. Los escenarios son pocos y bien delimitados: login correcto, login fallido y acceso protegido. La validación principal se concentra en el contrato del token y en el comportamiento de la sesión.
+
+---
+
+# HU-09 | Consultar pedidos del usuario
+
+## Objetivo de la historia
+Permitir que un usuario autenticado consulte únicamente los pedidos confirmados asociados a su propia cuenta, sin exponer datos de otras personas.
+
+## Subtareas DEV
+
+### Backend
+- **HU09-T01** | Adaptar la persistencia del pedido para asociar cada confirmación al `userId` obtenido desde el JWT.
+- **HU09-T02** | Implementar la consulta de pedidos filtrada por usuario autenticado en el repositorio y el caso de uso.
+- **HU09-T03** | Exponer el endpoint `GET /api/v1/pedido/mis-pedidos` conforme al contrato definido.
+- **HU09-T04** | Asegurar que la confirmación y el historial respeten la propiedad del pedido y no acepten `userId` desde el frontend.
+- **HU09-T05** | Ajustar los mapeos de respuesta para devolver origen, destino, peso, prioridad y proveedor seleccionado.
+- **HU09-T06** | Realizar pruebas unitarias e integración para la consulta del historial autenticado.
+
+### Frontend
+- **HU09-T07** | Implementar la pantalla o componente de historial de pedidos del usuario.
+- **HU09-T08** | Consumir el `userOrdersApiService` para obtener los pedidos del usuario autenticado.
+- **HU09-T09** | Mostrar estados de carga, vacío y error de forma clara en la vista de historial.
+- **HU09-T10** | Integrar la navegación al historial desde la aplicación autenticada.
+- **HU09-T11** | Limpiar el estado del historial al cerrar sesión para evitar datos cruzados.
+- **HU09-T12** | Realizar pruebas unitarias y de cobertura para la vista y sus estados.
+
+## Subtareas QA
+
+### Análisis y diseño
+- **HU09-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
+- **HU09-T14 (QA)** | Diseñar casos de prueba para historial con pedidos, historial vacío y aislamiento por usuario.
+
+### Validación técnica y funcional
+- **HU09-T15 (QA)** | Verificar el funcionamiento del endpoint `GET /api/v1/pedido/mis-pedidos`.
+- **HU09-T16 (QA)** | Validar que el sistema muestre únicamente pedidos del usuario autenticado.
+- **HU09-T17 (QA)** | Verificar el comportamiento ante usuarios sin pedidos registrados.
+- **HU09-T18 (QA)** | Validar la navegación al historial y el renderizado correcto de los datos mínimos requeridos.
+- **HU09-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+
+## Estimación: 5 puntos
+
+### Justificación:
+- **DEV:** Esfuerzo medio. La historia requiere tocar persistencia, seguridad y consulta filtrada por `userId`, además de un componente de historial en frontend. No es compleja por lógica algorítmica, pero sí por la necesidad de mantener aislamiento de datos y contratos consistentes.
+- **QA**: Esfuerzo medio. Hay que validar la asociación correcta de pedidos al usuario autenticado, el historial vacío y la imposibilidad de ver pedidos ajenos. La validación funcional exige cubrir seguridad de datos, no solo renderizado.
+
+---
     
