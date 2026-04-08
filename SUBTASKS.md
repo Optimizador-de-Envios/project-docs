@@ -30,14 +30,13 @@ Permitirle al usuario agregar pedido para calcular y obtener una recomendación 
 - **TC-HU01-01 (QA)** | Registro exitoso con usuario autenticado.
 - **TC-HU01-02 (QA)** | Autocompletado restringido a Colombia.
 - **TC-HU01-03 (QA)** | Registro fallido por campos vacíos.
-- **TC-HU01-04 (QA)** | Registro fallido por origen fuera de Colombia.
-- **TC-HU01-05 (QA)** | Registro fallido por destino fuera de Colombia.
-- **TC-HU01-06 (QA)** | Registro exitoso con peso mínimo (0.001 Kg).
-- **TC-HU01-07 (QA)** | Registro exitoso con peso máximo (70 Kg).
-- **TC-HU01-08 (QA)** | Registro fallido por peso inferior al mínimo.
-- **TC-HU01-09 (QA)** | Registro fallido por peso superior al máximo.
-- **TC-HU01-10 (QA)** | Exploratoria del formulario, autocompletado y prioridad.
-- **TC-HU01-11 (QA)** | Smoke de API autenticada para pedido.
+- **TC-HU01-04 (QA)** | Registro fallido por origen o destino fuera de Colombia.
+- **TC-HU01-05 (QA)** | Registro exitoso con peso mínimo (0.001 Kg).
+- **TC-HU01-06 (QA)** | Registro exitoso con peso máximo (70 Kg).
+- **TC-HU01-07 (QA)** | Registro fallido por peso inferior al mínimo.
+- **TC-HU01-08 (QA)** | Registro fallido por peso superior al máximo.
+- **TC-HU01-09 (QA)** | Exploratoria del formulario, autocompletado y prioridad.
+- **TC-HU01-10 (QA)** | Smoke de API autenticada para pedido.
 
 ## Estimación: 5 puntos
 
@@ -73,9 +72,8 @@ Permitir al usuario seleccionar el criterio de optimización del envío para que
 
 ## Subtareas QA
 
-- **TC-HU02-01 (QA)** | Selección de prioridad por menor costo.
-- **TC-HU02-02 (QA)** | Selección de prioridad por menor tiempo.
-- **TC-HU02-03 (QA)** | Registro fallido por no seleccionar prioridad.
+- **TC-HU02-01 (QA)** | Selección de prioridad de envío.
+- **TC-HU02-02 (QA)** | Registro fallido por no seleccionar prioridad.
 
 ## Estimación: 3 puntos
 
@@ -187,12 +185,11 @@ Permitir al usuario seleccionar un proveedor de envío y confirmar su selección
 
 ## Subtareas QA
 
-- **TC-HU05-01 (QA)** | Selección del proveedor recomendado.
-- **TC-HU05-02 (QA)** | Selección de proveedor alternativo.
-- **TC-HU05-03 (QA)** | Confirmación fallida sin seleccionar proveedor.
-- **TC-HU05-04 (QA)** | Confirmación fallida por proveedor inválido.
-- **TC-HU05-05 (QA)** | Persistencia del pedido asociada al usuario.
-- **TC-HU05-06 (QA)** | Rendimiento de confirmación autenticada.
+- **TC-HU05-01 (QA)** | Selección de un proveedor disponible.
+- **TC-HU05-02 (QA)** | Confirmación fallida sin seleccionar proveedor.
+- **TC-HU05-03 (QA)** | Confirmación fallida por proveedor inválido.
+- **TC-HU05-04 (QA)** | Persistencia del pedido asociada al usuario.
+- **TC-HU05-05 (QA)** | Rendimiento de confirmación autenticada.
 
 ## Estimación: 5 puntos
 ### Justificación:
@@ -342,9 +339,8 @@ Permitir que un usuario autenticado consulte únicamente los pedidos confirmados
 
 - **TC-HU09-01 (QA)** | Visualización de pedidos del usuario autenticado.
 - **TC-HU09-02 (QA)** | Usuario sin pedidos registrados.
-- **TC-HU09-03 (QA)** | Aislamiento de pedidos entre usuarios.
-- **TC-HU09-04 (QA)** | La consulta no acepta userId desde frontend.
-- **TC-HU09-05 (QA)** | Rendimiento de historial autenticado.
+- **TC-HU09-03 (QA)** | La consulta no acepta userId desde frontend.
+- **TC-HU09-04 (QA)** | Rendimiento de historial autenticado.
 
 ## Estimación: 5 puntos
 

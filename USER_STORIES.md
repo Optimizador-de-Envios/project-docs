@@ -66,17 +66,9 @@ Escenario: Intento de registro con campos vacíos
 ```
 
 ```gherkin
-Escenario: Origen fuera de Colombia
+Escenario: Origen o destino fuera de Colombia
     Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un origen fuera de Colombia y un destino dentro de Colombia
-    Entonces el sistema no debe permitir continuar con el cálculo del envío
-    Y debe informar que el envío está fuera de la cobertura permitida
-```
-
-```gherkin
-Escenario: Destino fuera de Colombia
-    Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un origen dentro de Colombia y un destino fuera de Colombia
+    Cuando ingresa un origen o un destino fuera de Colombia
     Entonces el sistema no debe permitir continuar con el cálculo del envío
     Y debe informar que el envío está fuera de la cobertura permitida
 ```
@@ -129,17 +121,11 @@ Escenario: Peso fuera del rango permitido
 ### Criterios de Aceptación
 
 ```gherkin
-Escenario: Selección de prioridad por menor costo
+Escenario: Selección de prioridad de envío
     Dado que el usuario autenticado registró un pedido válido
-    Cuando selecciona prioridad de menor costo
-    Entonces el sistema debe utilizar el costo como criterio principal para generar la recomendación
-```
-
-```gherkin
-Escenario: Selección de prioridad por menor tiempo de entrega
-    Dado que el usuario autenticado registró un pedido válido
-    Cuando selecciona prioridad de menor tiempo de entrega
-    Entonces el sistema debe utilizar el tiempo de entrega como criterio principal para generar la recomendación
+    Cuando selecciona una prioridad de envío (menor costo o menor tiempo de entrega)
+    Entonces el sistema debe registrar la prioridad seleccionada
+    Y debe permitir continuar con el cálculo de la recomendación
 ```
 
 ```gherkin
@@ -321,16 +307,9 @@ Escenario: Ausencia de opciones alternativas
 ### Criterios de Aceptación
 
 ```gherkin
-Escenario: Selección del proveedor recomendado
+Escenario: Selección de un proveedor disponible
     Dado que el usuario autenticado visualiza la opción recomendada y las opciones disponibles
-    Cuando selecciona el proveedor recomendado
-    Entonces el sistema debe permitir continuar con el proceso del pedido
-```
-
-```gherkin
-Escenario: Selección de un proveedor alternativo
-    Dado que el usuario autenticado visualiza la opción recomendada y las opciones alternativas
-    Cuando selecciona un proveedor alternativo disponible
+    Cuando selecciona un proveedor disponible (recomendado o alternativo)
     Entonces el sistema debe permitir continuar con el proceso del pedido
 ```
 
@@ -642,13 +621,7 @@ Escenario: Usuario autenticado sin pedidos registrados
     Entonces el sistema debe informar que no existen pedidos registrados para ese usuario
 ```
 
-```gherkin
-Escenario: Intento de consultar pedidos de otro usuario
-    Dado que existen pedidos asociados a diferentes usuarios
-    Cuando un usuario autenticado consulta su información
-    Entonces el sistema no debe mostrar pedidos de otras cuentas
-    Y debe restringir la información a los pedidos asociados al usuario autenticado
-```
+
 
 ### Definition of Done (DoD)
 - La funcionalidad de consulta de pedidos por usuario está implementada.

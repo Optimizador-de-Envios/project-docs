@@ -1,19 +1,8 @@
 # Casos de Prueba — Optimizador de Envíos
 
-## MVP base + MVP v2: HU-01 a HU-09
+Este documento contiene los casos de prueba para el MVP base + MVP v2 del Optimizador de Envíos.
 
 ---
-
-## Convenciones de ejecución
-
-Cada caso de prueba está asignado a **una sola herramienta**, seleccionada según el foco principal del test:
-
-| Herramienta | Cuándo se usa |
-|---|---|
-| **Serenity Screenplay** | Flujos E2E desde la perspectiva del usuario: happy paths, interacciones de UI, navegación y estados visuales. |
-| **Karate DSL** | Validaciones de API e integración: contratos REST, códigos HTTP, reglas de negocio, seguridad, persistencia y stubs/mocks de OpenRouteService. |
-| **Manual exploratoria** | Exploración libre de UX, mensajes, estados visuales, DevTools y comportamientos no cubiertos por scripts. |
-| **k6** | Pruebas de smoke, carga y rendimiento sobre endpoints críticos autenticados. |
 
 ### Precondiciones transversales
 
@@ -95,11 +84,11 @@ Entonces el sistema retorna HTTP 400 indicando campos obligatorios
 
 ---
 
-### TC-HU01-04 · Registro fallido por origen fuera de Colombia
+### TC-HU01-04 · Registro fallido por origen o destino fuera de Colombia
 
 ```gherkin
 Dado que el usuario autenticado necesita enviar un producto
-Cuando ingresa origen fuera de Colombia y destino dentro de Colombia
+Cuando ingresa un origen o un destino fuera de Colombia
 Entonces el sistema bloquea el cálculo e informa fuera de cobertura
 ```
 
@@ -110,34 +99,13 @@ Entonces el sistema bloquea el cálculo e informa fuera de cobertura
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
 | **Precondiciones** | JWT válido. Validación de cobertura activa. |
-| **Datos de prueba** | origen = "Buenos Aires, Argentina" · destino = "Medellín, Colombia" · peso = 5 Kg |
-| **Pasos** | POST /api/v1/pedido con origen fuera → verificar HTTP 400. |
+| **Datos de prueba** | Caso A: origen = "Buenos Aires, Argentina" · destino = "Medellín, Colombia" · peso = 5 Kg. Caso B: origen = "Bogotá, Colombia" · destino = "Buenos Aires, Argentina" · peso = 5 Kg |
+| **Pasos** | POST /api/v1/pedido con origen o destino fuera de Colombia → verificar HTTP 400 en ambos casos. |
 | **Resultado esperado** | HTTP 400. Fuera de cobertura. No se genera recomendación. |
 
 ---
 
-### TC-HU01-05 · Registro fallido por destino fuera de Colombia
-
-```gherkin
-Dado que el usuario autenticado necesita enviar un producto
-Cuando ingresa origen dentro de Colombia y destino fuera de Colombia
-Entonces el sistema bloquea el cálculo e informa fuera de cobertura
-```
-
-| Campo | Detalle |
-|---|---|
-| **Prioridad** | Alto |
-| **Herramienta** | Karate DSL |
-| **Estado** | Sin ejecutar |
-| **Resultado de ejecución** | — |
-| **Precondiciones** | JWT válido. Validación de cobertura activa. |
-| **Datos de prueba** | origen = "Bogotá, Colombia" · destino = "Buenos Aires, Argentina" · peso = 5 Kg |
-| **Pasos** | POST /api/v1/pedido con destino fuera → verificar HTTP 400. |
-| **Resultado esperado** | HTTP 400. Fuera de cobertura. No se genera recomendación. |
-
----
-
-### TC-HU01-06 · Registro exitoso con peso mínimo (0.001 Kg)
+### TC-HU01-05 · Registro exitoso con peso mínimo (0.001 Kg)
 
 ```gherkin
 Dado que el usuario autenticado ingresa datos válidos
@@ -158,7 +126,7 @@ Entonces el sistema acepta el pedido
 
 ---
 
-### TC-HU01-07 · Registro exitoso con peso máximo (70 Kg)
+### TC-HU01-06 · Registro exitoso con peso máximo (70 Kg)
 
 ```gherkin
 Dado que el usuario autenticado ingresa datos válidos
@@ -179,7 +147,7 @@ Entonces el sistema acepta el pedido
 
 ---
 
-### TC-HU01-08 · Registro fallido por peso inferior al mínimo
+### TC-HU01-07 · Registro fallido por peso inferior al mínimo
 
 ```gherkin
 Dado que el usuario autenticado ingresa origen y destino válidos
@@ -200,7 +168,7 @@ Entonces el sistema bloquea el pedido e informa peso fuera de rango
 
 ---
 
-### TC-HU01-09 · Registro fallido por peso superior al máximo
+### TC-HU01-08 · Registro fallido por peso superior al máximo
 
 ```gherkin
 Dado que el usuario autenticado ingresa origen y destino válidos
@@ -221,7 +189,7 @@ Entonces el sistema bloquea el pedido e informa peso fuera de rango
 
 ---
 
-### TC-HU01-10 · Exploratoria del formulario, autocompletado y prioridad
+### TC-HU01-09 · Exploratoria del formulario, autocompletado y prioridad
 
 ```gherkin
 Dado que el usuario autenticado usa el formulario de pedido y el selector de prioridad
@@ -242,7 +210,7 @@ Entonces no deben aparecer bloqueos, mensajes ambiguos ni inconsistencias visual
 
 ---
 
-### TC-HU01-11 · Smoke de API autenticada para pedido
+### TC-HU01-10 · Smoke de API autenticada para pedido
 
 ```gherkin
 Dado que existe un usuario autenticado y datos válidos
@@ -265,12 +233,12 @@ Entonces el servicio responde de forma estable
 
 ## HU-02 — Definir prioridad del envío
 
-### TC-HU02-01 · Selección de prioridad por menor costo
+### TC-HU02-01 · Selección de prioridad de envío
 
 ```gherkin
 Dado que el usuario autenticado registró un pedido válido
-Cuando selecciona prioridad de menor costo
-Entonces el sistema usa el costo como criterio principal de recomendación
+Cuando selecciona una prioridad de envío (menor costo o menor tiempo de entrega)
+Entonces el sistema registra la prioridad seleccionada y permite continuar con la recomendación
 ```
 
 | Campo | Detalle |
@@ -280,34 +248,13 @@ Entonces el sistema usa el costo como criterio principal de recomendación
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
 | **Precondiciones** | Usuario autenticado. Pedido válido en el flujo. |
-| **Datos de prueba** | prioridad = "MENOR_COSTO" |
-| **Pasos** | Preparar pedido → seleccionar menor costo → verificar que queda registrada. |
-| **Resultado esperado** | Prioridad registrada como MENOR_COSTO. Sistema usa costo para recomendación. |
+| **Datos de prueba** | prioridad = "MENOR_COSTO" o "MENOR_TIEMPO" |
+| **Pasos** | Preparar pedido → seleccionar prioridad → verificar que queda registrada → verificar continuación. |
+| **Resultado esperado** | Prioridad registrada correctamente. Sistema permite continuar con la recomendación. |
 
 ---
 
-### TC-HU02-02 · Selección de prioridad por menor tiempo
-
-```gherkin
-Dado que el usuario autenticado registró un pedido válido
-Cuando selecciona prioridad de menor tiempo de entrega
-Entonces el sistema usa el tiempo como criterio principal de recomendación
-```
-
-| Campo | Detalle |
-|---|---|
-| **Prioridad** | Crítico |
-| **Herramienta** | Serenity Screenplay |
-| **Estado** | Sin ejecutar |
-| **Resultado de ejecución** | — |
-| **Precondiciones** | Usuario autenticado. Pedido válido en el flujo. |
-| **Datos de prueba** | prioridad = "MENOR_TIEMPO" |
-| **Pasos** | Preparar pedido → seleccionar menor tiempo → verificar que queda registrada. |
-| **Resultado esperado** | Prioridad registrada como MENOR_TIEMPO. Sistema usa tiempo para recomendación. |
-
----
-
-### TC-HU02-03 · Registro fallido por no seleccionar prioridad
+### TC-HU02-02 · Registro fallido por no seleccionar prioridad
 
 ```gherkin
 Dado que el usuario autenticado registró un pedido válido
@@ -550,11 +497,11 @@ Entonces la recomendación principal no aparece dentro de alternativas
 
 ## HU-05 — Seleccionar y confirmar proveedor
 
-### TC-HU05-01 · Selección del proveedor recomendado
+### TC-HU05-01 · Selección de un proveedor disponible
 
 ```gherkin
-Dado que el usuario autenticado visualiza recomendación y opciones
-Cuando selecciona el proveedor recomendado
+Dado que el usuario autenticado visualiza recomendación y opciones disponibles
+Cuando selecciona un proveedor disponible (recomendado o alternativo)
 Entonces el sistema permite continuar a confirmación final
 ```
 
@@ -564,35 +511,14 @@ Entonces el sistema permite continuar a confirmación final
 | **Herramienta** | Serenity Screenplay |
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
-| **Precondiciones** | Usuario autenticado. Recomendación generada. |
-| **Datos de prueba** | proveedorSeleccionado = recomendado |
-| **Pasos** | Flujo de pedido → seleccionar recomendado → verificar continuación. |
-| **Resultado esperado** | Selección registrada. Se permite continuar a confirmación. |
+| **Precondiciones** | Usuario autenticado. Recomendación generada. Alternativas disponibles. |
+| **Datos de prueba** | proveedorSeleccionado = recomendado o alternativo |
+| **Pasos** | Flujo de pedido → seleccionar proveedor (recomendado o alternativo) → verificar continuación. |
+| **Resultado esperado** | Selección registrada. Se permite continuar a confirmación. No se fuerza un proveedor específico. |
 
 ---
 
-### TC-HU05-02 · Selección de proveedor alternativo
-
-```gherkin
-Dado que el usuario autenticado visualiza recomendación y alternativas
-Cuando selecciona un proveedor alternativo disponible
-Entonces el sistema permite continuar a confirmación final
-```
-
-| Campo | Detalle |
-|---|---|
-| **Prioridad** | Alto |
-| **Herramienta** | Serenity Screenplay |
-| **Estado** | Sin ejecutar |
-| **Resultado de ejecución** | — |
-| **Precondiciones** | Usuario autenticado. Alternativas disponibles. |
-| **Datos de prueba** | proveedorSeleccionado = alternativo ≠ recomendado |
-| **Pasos** | Flujo de recomendación → seleccionar alternativa → confirmar. |
-| **Resultado esperado** | Alternativa registrada. No se fuerza al usuario a confirmar solo el recomendado. |
-
----
-
-### TC-HU05-03 · Confirmación fallida sin seleccionar proveedor
+### TC-HU05-02 · Confirmación fallida sin seleccionar proveedor
 
 ```gherkin
 Dado que el usuario autenticado visualiza opciones disponibles
@@ -613,7 +539,7 @@ Entonces el sistema retorna HTTP 400 indicando proveedor obligatorio
 
 ---
 
-### TC-HU05-04 · Confirmación fallida por proveedor inválido
+### TC-HU05-03 · Confirmación fallida por proveedor inválido
 
 ```gherkin
 Dado que el usuario autenticado tiene opciones disponibles
@@ -634,7 +560,7 @@ Entonces el sistema rechaza la confirmación
 
 ---
 
-### TC-HU05-05 · Persistencia del pedido asociada al usuario
+### TC-HU05-04 · Persistencia del pedido asociada al usuario
 
 ```gherkin
 Dado que el usuario autenticado selecciona y confirma proveedor
@@ -655,7 +581,7 @@ Entonces el sistema persiste el pedido asociado al usuario del JWT
 
 ---
 
-### TC-HU05-06 · Rendimiento de confirmación autenticada
+### TC-HU05-05 · Rendimiento de confirmación autenticada
 
 ```gherkin
 Dado que la confirmación de proveedor es funcionalmente estable
@@ -1154,28 +1080,7 @@ Entonces el sistema informa que no existen pedidos registrados
 
 ---
 
-### TC-HU09-03 · Aislamiento de pedidos entre usuarios
-
-```gherkin
-Dado que existen pedidos de usuario A y usuario B
-Cuando usuario A consulta su historial
-Entonces no ve pedidos de usuario B
-```
-
-| Campo | Detalle |
-|---|---|
-| **Prioridad** | Crítico |
-| **Herramienta** | Karate DSL |
-| **Estado** | Sin ejecutar |
-| **Resultado de ejecución** | — |
-| **Precondiciones** | Usuario A y B con pedidos diferenciados. JWT de cada uno. |
-| **Datos de prueba** | usuarioA · usuarioB · pedidos diferenciados |
-| **Pasos** | Crear pedidos A y B → GET /mis-pedidos con JWT A → GET con JWT B → comparar. |
-| **Resultado esperado** | A solo ve pedidos de A. B solo ve pedidos de B. Sin filtración. |
-
----
-
-### TC-HU09-04 · La consulta no acepta userId desde frontend
+### TC-HU09-03 · La consulta no acepta userId desde frontend
 
 ```gherkin
 Dado que la propiedad del pedido se obtiene desde el JWT
@@ -1196,7 +1101,7 @@ Entonces el sistema ignora o rechaza el userId y filtra por el JWT
 
 ---
 
-### TC-HU09-05 · Rendimiento de historial autenticado
+### TC-HU09-04 · Rendimiento de historial autenticado
 
 ```gherkin
 Dado que existen usuarios autenticados con datos de prueba
@@ -1223,35 +1128,35 @@ Entonces el endpoint responde dentro del umbral acordado
 
 | Microsprint | Historias | Casos | Foco principal |
 |---|---|---:|---|
-| Microsprint 1 | HU-01, HU-02 | 14 | Registro de pedido, autocompletado, cobertura Colombia, peso y prioridad. |
-| Microsprint 2 | HU-03, HU-04, HU-05 | 15 | Recomendación, desempate, alternativas, selección, confirmación y rendimiento. |
+| Microsprint 1 | HU-01, HU-02 | 12 | Registro de pedido, autocompletado, cobertura Colombia, peso y prioridad. |
+| Microsprint 2 | HU-03, HU-04, HU-05 | 14 | Recomendación, desempate, alternativas, selección, confirmación y rendimiento. |
 | Microsprint 3 | HU-06 | 6 | Ruta en mapa, ORS, conversión de coordenadas, marcadores y manejo de errores. |
-| Microsprint 4 | HU-07, HU-08, HU-09 | 20 | Registro, login, JWT, logout, rutas protegidas, historial y aislamiento. |
-| **Total** | **HU-01 a HU-09** | **55** | **MVP base + MVP v2 completo** |
+| Microsprint 4 | HU-07, HU-08, HU-09 | 19 | Registro, login, JWT, logout, rutas protegidas, historial y aislamiento. |
+| **Total** | **HU-01 a HU-09** | **51** | **MVP base + MVP v2 completo** |
 
 ## Cobertura por historia de usuario
 
 | ID | Historia de Usuario | Casos | Serenity | Karate | Exploratoria | k6 |
 |---|---|---:|---:|---:|---:|---:|
-| HU-01 | Registrar pedido de envío | 11 | 2 | 7 | 1 | 1 |
-| HU-02 | Definir prioridad del envío | 3 | 2 | 1 | 0 | 0 |
+| HU-01 | Registrar pedido de envío | 10 | 2 | 6 | 1 | 1 |
+| HU-02 | Definir prioridad del envío | 2 | 1 | 1 | 0 | 0 |
 | HU-03 | Obtener recomendación principal | 7 | 0 | 5 | 1 | 1 |
 | HU-04 | Obtener alternativas de proveedores | 3 | 2 | 1 | 0 | 0 |
-| HU-05 | Seleccionar y confirmar proveedor | 6 | 2 | 3 | 0 | 1 |
+| HU-05 | Seleccionar y confirmar proveedor | 5 | 1 | 3 | 0 | 1 |
 | HU-06 | Visualizar ruta en el mapa | 6 | 3 | 2 | 1 | 0 |
 | HU-07 | Registrar usuario | 6 | 1 | 4 | 1 | 0 |
 | HU-08 | Iniciar sesión | 8 | 3 | 2 | 1 | 1 |
-| HU-09 | Consultar pedidos del usuario | 5 | 2 | 2 | 0 | 1 |
-| **Total** | **MVP base + MVP v2** | **55** | **17** | **27** | **5** | **5** |
+| HU-09 | Consultar pedidos del usuario | 4 | 2 | 1 | 0 | 1 |
+| **Total** | **MVP base + MVP v2** | **51** | **15** | **25** | **5** | **5** |
 
 ## Cobertura de reglas del PRD
 
 | Reglas PRD | HU cubiertas | Casos principales |
 |---|---|---|
-| Reglas 1–4 | HU-01, HU-02 | TC-HU01-01 a TC-HU01-11, TC-HU02-01 a TC-HU02-03 |
+| Reglas 1–4 | HU-01, HU-02 | TC-HU01-01 a TC-HU01-10, TC-HU02-01 a TC-HU02-02 |
 | Reglas 5–8 | HU-03 | TC-HU03-01 a TC-HU03-07 |
 | Regla 9 | HU-04 | TC-HU04-01 a TC-HU04-03 |
-| Reglas 10–11, 24 | HU-05, HU-09 | TC-HU05-01 a TC-HU05-06, TC-HU09-01, TC-HU09-03, TC-HU09-04 |
+| Reglas 10–11, 24 | HU-05, HU-09 | TC-HU05-01 a TC-HU05-05, TC-HU09-01, TC-HU09-03 |
 | Reglas 12–16 | HU-06 | TC-HU06-01 a TC-HU06-06 |
 | Reglas 17–23, 28 | HU-07, HU-08 | TC-HU07-01 a TC-HU07-06, TC-HU08-01 a TC-HU08-08 |
-| Reglas 25–27 | HU-09 | TC-HU09-01 a TC-HU09-05 |
+| Reglas 25–27 | HU-09 | TC-HU09-01 a TC-HU09-04 |
