@@ -755,7 +755,7 @@ Entonces el sistema registra al usuario y la cuenta queda disponible para login
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
 | **Precondiciones** | Correo no existente en base. Formulario disponible. |
-| **Datos de prueba** | nombre = "Usuario QA" · email = "qa.unico@example.com" · password = "Password123" |
+| **Datos de prueba** | name = "Usuario QA" · email = "qa.unico@example.com" · password = "Password123" |
 | **Pasos** | Abrir registro → completar datos → enviar → verificar éxito → login con cuenta creada. |
 | **Resultado esperado** | Registro exitoso. Usuario persistido. Puede iniciar sesión. |
 
@@ -797,7 +797,7 @@ Entonces el sistema retorna HTTP 400 indicando campos obligatorios
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
 | **Precondiciones** | Endpoint de registro disponible. |
-| **Datos de prueba** | nombre = "" · email = "" · password = "" |
+| **Datos de prueba** | name = "" · email = "" · password = "" |
 | **Pasos** | POST /api/users/register sin campos → verificar HTTP 400 y mensaje. |
 | **Resultado esperado** | HTTP 400. Campos obligatorios. No se persiste usuario. |
 
