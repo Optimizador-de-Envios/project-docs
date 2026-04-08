@@ -122,8 +122,8 @@ Se utilizará k6 para validar que el motor de recomendación responde dentro de 
 ### 4.2 Tipos de casos de prueba
 
 - **Casos positivos:** registro exitoso, login exitoso, registro de pedido válido con usuario autenticado, selección de prioridad, recomendación acertada, visualización de alternativas, visualización de ruta, confirmación con persistencia, consulta de historial y logout exitoso.
-- **Casos negativos:** campos obligatorios vacíos, correo duplicado, contraseña inválida, credenciales inválidas, intento de uso de la plataforma sin sesión, prioridad no seleccionada, proveedor no seleccionado, token ausente o inválido, consulta protegida sin autenticación, origen fuera de Colombia, destino fuera de Colombia y origen/destino fuera de Colombia simultáneamente.
-- **Casos de borde:** valores de peso 0 Kg, 0,0009 Kg, 0,001 Kg, 70 Kg y 70,001 Kg; coordenadas ausentes, respuesta vacía de ruta, usuario autenticado sin pedidos y un solo proveedor disponible.
+- **Casos negativos:** campos obligatorios vacíos, correo duplicado, contraseña inválida, credenciales inválidas, intento de uso de la plataforma sin sesión, prioridad no seleccionada, proveedor no seleccionado, token ausente o inválido, consulta protegida sin autenticación, origen fuera de Colombia y destino fuera de Colombia.
+- **Casos de borde:** valores de peso 0,0009 Kg, 0,001 Kg, 70 Kg y 70,001 Kg; coordenadas ausentes, respuesta vacía de ruta, usuario autenticado sin pedidos y un solo proveedor disponible.
 - **Casos de desempate:** validación de las reglas 7 y 8: empate en costo desempatado por tiempo y empate en tiempo desempatado por costo.
 - **Casos geoespaciales:** validación de autocompletado con OpenRouteService filtrado por Colombia, coordenadas válidas, conversión `[lng, lat]` a `[lat, lng]`, marcadores de origen y destino, ajuste automático del mapa y manejo de error cuando no hay datos suficientes.
 - **Casos de seguridad:** aislamiento de pedidos por usuario, rechazo de acceso no autenticado, cierre de sesión y validación de que la confirmación del pedido queda asociada al usuario autenticado.
@@ -132,13 +132,12 @@ Se utilizará k6 para validar que el motor de recomendación responde dentro de 
 
 | Dimensión | Datos mínimos | Resultado esperado |
 |---|---|---|
-| Peso inválido inferior | 0 Kg y 0,0009 Kg | El sistema rechaza el cálculo por peso fuera del mínimo permitido. |
+| Peso inválido inferior | 0,0009 Kg | El sistema rechaza el cálculo por peso fuera del mínimo permitido. |
 | Peso válido límite | 0,001 Kg y 70 Kg | El sistema permite continuar si el resto de datos es válido. |
 | Peso inválido superior | 70,001 Kg | El sistema rechaza el cálculo por superar el máximo permitido. |
 | Cobertura válida | Origen Colombia + destino Colombia | El sistema permite continuar si el resto de datos es válido. |
 | Cobertura inválida por origen | Origen fuera de Colombia + destino Colombia | El sistema rechaza el flujo por fuera de cobertura. |
 | Cobertura inválida por destino | Origen Colombia + destino fuera de Colombia | El sistema rechaza el flujo por fuera de cobertura. |
-| Cobertura inválida total | Origen fuera de Colombia + destino fuera de Colombia | El sistema rechaza el flujo por fuera de cobertura. |
 
 ### 4.3 Pruebas manuales
 

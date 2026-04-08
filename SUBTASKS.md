@@ -27,16 +27,16 @@ Permitirle al usuario agregar pedido para calcular y obtener una recomendación 
 
 ## Subtareas QA
 
-- **TC-HU01-01 (QA)** | Registro exitoso con datos válidos y usuario autenticado.
-- **TC-HU01-02 (QA)** | Autocompletado de origen y destino restringido a Colombia.
-- **TC-HU01-03 (QA)** | Registro fallido por campos obligatorios vacíos.
+- **TC-HU01-01 (QA)** | Registro exitoso con usuario autenticado.
+- **TC-HU01-02 (QA)** | Autocompletado restringido a Colombia.
+- **TC-HU01-03 (QA)** | Registro fallido por campos vacíos.
 - **TC-HU01-04 (QA)** | Registro fallido por origen fuera de Colombia.
 - **TC-HU01-05 (QA)** | Registro fallido por destino fuera de Colombia.
-- **TC-HU01-06 (QA)** | Registro exitoso con peso mínimo permitido.
-- **TC-HU01-07 (QA)** | Registro exitoso con peso máximo permitido.
+- **TC-HU01-06 (QA)** | Registro exitoso con peso mínimo (0.001 Kg).
+- **TC-HU01-07 (QA)** | Registro exitoso con peso máximo (70 Kg).
 - **TC-HU01-08 (QA)** | Registro fallido por peso inferior al mínimo.
 - **TC-HU01-09 (QA)** | Registro fallido por peso superior al máximo.
-- **TC-HU01-10 (QA)** | Exploratoria del formulario de pedido, autocompletado y selector de prioridad.
+- **TC-HU01-10 (QA)** | Exploratoria del formulario, autocompletado y prioridad.
 - **TC-HU01-11 (QA)** | Smoke de API autenticada para pedido.
 
 ## Estimación: 5 puntos
@@ -73,8 +73,8 @@ Permitir al usuario seleccionar el criterio de optimización del envío para que
 
 ## Subtareas QA
 
-- **TC-HU02-01 (QA)** | Selección exitosa de prioridad por menor costo.
-- **TC-HU02-02 (QA)** | Selección exitosa de prioridad por menor tiempo.
+- **TC-HU02-01 (QA)** | Selección de prioridad por menor costo.
+- **TC-HU02-02 (QA)** | Selección de prioridad por menor tiempo.
 - **TC-HU02-03 (QA)** | Registro fallido por no seleccionar prioridad.
 
 ## Estimación: 3 puntos
@@ -112,8 +112,8 @@ Permitir al usuario obtener la mejor opción de envío según la prioridad selec
 
 - **TC-HU03-01 (QA)** | Recomendación principal por menor costo.
 - **TC-HU03-02 (QA)** | Recomendación principal por menor tiempo.
-- **TC-HU03-03 (QA)** | Desempate por tiempo ante empate en menor costo.
-- **TC-HU03-04 (QA)** | Desempate por costo ante empate en menor tiempo.
+- **TC-HU03-03 (QA)** | Desempate por tiempo ante empate en costo.
+- **TC-HU03-04 (QA)** | Desempate por costo ante empate en tiempo.
 - **TC-HU03-05 (QA)** | Contrato de respuesta de recomendación.
 - **TC-HU03-06 (QA)** | Carga del motor de recomendación.
 - **TC-HU03-07 (QA)** | Exploratoria de recomendación, alternativas y confirmación.
@@ -153,7 +153,7 @@ Permitir al usuario visualizar opciones alternativas de proveedores de transport
 
 - **TC-HU04-01 (QA)** | Visualización de alternativas disponibles.
 - **TC-HU04-02 (QA)** | Ausencia de opciones alternativas.
-- **TC-HU04-03 (QA)** | La recomendación principal no se duplica como alternativa.
+- **TC-HU04-03 (QA)** | Recomendación principal no se duplica como alternativa.
 
 ## Estimación: 3 puntos
 
@@ -187,11 +187,11 @@ Permitir al usuario seleccionar un proveedor de envío y confirmar su selección
 
 ## Subtareas QA
 
-- **TC-HU05-01 (QA)** | Selección exitosa del proveedor recomendado.
-- **TC-HU05-02 (QA)** | Selección exitosa de proveedor alternativo.
-- **TC-HU05-03 (QA)** | Confirmación fallida por no seleccionar proveedor.
-- **TC-HU05-04 (QA)** | Confirmación fallida por proveedor inválido o no disponible.
-- **TC-HU05-05 (QA)** | Persistencia del pedido asociada al usuario autenticado.
+- **TC-HU05-01 (QA)** | Selección del proveedor recomendado.
+- **TC-HU05-02 (QA)** | Selección de proveedor alternativo.
+- **TC-HU05-03 (QA)** | Confirmación fallida sin seleccionar proveedor.
+- **TC-HU05-04 (QA)** | Confirmación fallida por proveedor inválido.
+- **TC-HU05-05 (QA)** | Persistencia del pedido asociada al usuario.
 - **TC-HU05-06 (QA)** | Rendimiento de confirmación autenticada.
 
 ## Estimación: 5 puntos
@@ -218,12 +218,12 @@ Permitir al usuario visualizar en el mapa la ruta estimada entre el origen y el 
 
 ## Subtareas QA
 
-- **TC-HU06-01 (QA)** | Visualización de ruta con marcadores de origen y destino.
+- **TC-HU06-01 (QA)** | Visualización de ruta con marcadores.
 - **TC-HU06-02 (QA)** | Ajuste automático del mapa a la ruta.
-- **TC-HU06-03 (QA)** | Conversión correcta de coordenadas de OpenRouteService a Leaflet.
-- **TC-HU06-04 (QA)** | Intento de visualización sin datos suficientes de ruta.
-- **TC-HU06-05 (QA)** | Manejo de error o respuesta vacía de OpenRouteService.
-- **TC-HU06-06 (QA)** | Exploratoria visual del mapa en navegador real.
+- **TC-HU06-03 (QA)** | Conversión de coordenadas ORS → Leaflet.
+- **TC-HU06-04 (QA)** | Intento de visualización sin datos de ruta.
+- **TC-HU06-05 (QA)** | Manejo de error de OpenRouteService.
+- **TC-HU06-06 (QA)** | Exploratoria visual del mapa.
 
 ## Estimación: 5 puntos
 
@@ -261,7 +261,7 @@ Permitir que una persona cree una cuenta en el user-service con nombre, email y 
 - **TC-HU07-01 (QA)** | Registro exitoso de usuario.
 - **TC-HU07-02 (QA)** | Registro fallido por correo duplicado.
 - **TC-HU07-03 (QA)** | Registro fallido por campos obligatorios vacíos.
-- **TC-HU07-04 (QA)** | Registro fallido por contraseña menor a 8 caracteres.
+- **TC-HU07-04 (QA)** | Registro fallido por contraseña < 8 caracteres.
 - **TC-HU07-05 (QA)** | Persistencia segura de contraseña cifrada.
 - **TC-HU07-06 (QA)** | Exploratoria del formulario de registro.
 
@@ -298,12 +298,12 @@ Permitir que un usuario registrado inicie sesión y reciba un JWT compatible con
 
 ## Subtareas QA
 
-- **TC-HU08-01 (QA)** | Inicio de sesión exitoso con JWT válido.
-- **TC-HU08-02 (QA)** | Inicio de sesión fallido por credenciales inválidas.
-- **TC-HU08-03 (QA)** | Acceso a funcionalidad protegida sin autenticación.
-- **TC-HU08-04 (QA)** | Cierre de sesión bloquea funcionalidades protegidas y limpia historial.
+- **TC-HU08-01 (QA)** | Inicio de sesión exitoso con JWT.
+- **TC-HU08-02 (QA)** | Login fallido por credenciales inválidas.
+- **TC-HU08-03 (QA)** | Acceso sin autenticación a rutas protegidas.
+- **TC-HU08-04 (QA)** | Cierre de sesión bloquea acceso y limpia historial.
 - **TC-HU08-05 (QA)** | Rechazo de token inválido o expirado.
-- **TC-HU08-06 (QA)** | Restauración de sesión al recargar la página.
+- **TC-HU08-06 (QA)** | Restauración de sesión al recargar.
 - **TC-HU08-07 (QA)** | Rendimiento de login controlado.
 - **TC-HU08-08 (QA)** | Exploratoria de autenticación, logout e historial.
 
@@ -341,9 +341,9 @@ Permitir que un usuario autenticado consulte únicamente los pedidos confirmados
 ## Subtareas QA
 
 - **TC-HU09-01 (QA)** | Visualización de pedidos del usuario autenticado.
-- **TC-HU09-02 (QA)** | Usuario autenticado sin pedidos registrados.
+- **TC-HU09-02 (QA)** | Usuario sin pedidos registrados.
 - **TC-HU09-03 (QA)** | Aislamiento de pedidos entre usuarios.
-- **TC-HU09-04 (QA)** | La consulta no acepta userId enviado desde frontend.
+- **TC-HU09-04 (QA)** | La consulta no acepta userId desde frontend.
 - **TC-HU09-05 (QA)** | Rendimiento de historial autenticado.
 
 ## Estimación: 5 puntos
