@@ -210,12 +210,12 @@ Entonces no deben aparecer bloqueos, mensajes ambiguos ni inconsistencias visual
 
 ---
 
-### TC-HU01-10 · Smoke de API autenticada para pedido
+### TC-HU01-10 · Smoke de cotización y recomendación de envío
 
 ```gherkin
-Dado que existe un usuario autenticado y datos válidos
-Cuando se ejecuta un smoke de baja carga sobre el endpoint de pedido
-Entonces el servicio responde de forma estable
+Dado que el servicio de cotización está disponible y existe un payload válido
+Cuando se ejecuta un smoke de baja carga sobre el endpoint de cotización
+Entonces el servicio responde de forma estable y retorna una recomendación válida con alternativas
 ```
 
 | Campo | Detalle |
@@ -224,10 +224,10 @@ Entonces el servicio responde de forma estable
 | **Herramienta** | k6 |
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
-| **Precondiciones** | Usuario de prueba. JWT válido. ORS mockeado. |
-| **Datos de prueba** | 1 VU · 1 min · POST /api/v1/pedido · peso = 5 Kg |
-| **Pasos** | Ejecutar script k6 smoke → validar checks → revisar tasa de error. |
-| **Resultado esperado** | http_req_failed < 1% · checks > 95% · sin errores de auth o contrato. |
+| **Precondiciones** | Shipment-service disponible. Payload válido. ORS disponible o mockeado. |
+| **Datos de prueba** | 1-2 VU · 30-60 s · POST /api/v1/pedido · prioridad = COST · peso = 10 Kg |
+| **Pasos** | Ejecutar script k6 smoke → enviar payload válido de cotización → validar status y checks funcionales mínimos → revisar tasa de error y tiempos de respuesta. |
+| **Resultado esperado** | HTTP 200 en >95% de las iteraciones válidas · http_req_failed < 1% · checks > 95% · la respuesta contiene recommendation.providerName, recommendation.cost, recommendation.currency, recommendation.estimatedDays y alternatives como arreglo. |
 
 ---
 
@@ -386,12 +386,12 @@ Entonces la estructura incluye proveedor, costo, tiempoEntrega, prioridad y alte
 
 ---
 
-### TC-HU03-06 · Carga del motor de recomendación
+### TC-HU03-06 · Carga controlada del motor de recomendación
 
 ```gherkin
 Dado que el flujo de recomendación es funcionalmente estable
-Cuando se ejecuta carga concurrente autenticada (5→25 VU, 5 min)
-Entonces el motor responde dentro del umbral acordado
+Cuando se ejecuta carga concurrente autenticada o no autenticada según implementación actual sobre el cálculo de recomendación
+Entonces el motor responde dentro del umbral acordado sin degradar la estructura ni la consistencia de la respuesta
 ```
 
 | Campo | Detalle |
@@ -400,10 +400,10 @@ Entonces el motor responde dentro del umbral acordado
 | **Herramienta** | k6 |
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
-| **Precondiciones** | JWT de prueba. ORS mockeado. |
-| **Datos de prueba** | 5→25 VU · 5 min · POST /api/v1/pedido |
-| **Pasos** | Ejecutar k6 de carga → verificar checks y tasa de error. |
-| **Resultado esperado** | p95 < 1200 ms · http_req_failed < 1% · checks > 95%. |
+| **Precondiciones** | Shipment-service disponible. ORS mockeado o estable. Payloads válidos con prioridad COST y TIME. |
+| **Datos de prueba** | 5→25 VU · 5 min · POST /api/v1/pedido · pesos válidos · prioridades COST y TIME |
+| **Pasos** | Ejecutar k6 de carga → alternar payloads válidos → validar status, tiempos y estructura de recomendación → verificar que no aumenten errores funcionales bajo concurrencia. |
+| **Resultado esperado** | p95 < 1200 ms · http_req_failed < 1% · checks > 95% · todas las respuestas exitosas incluyen recommendation válida y alternatives consistente · no aparecen respuestas vacías, malformadas ni errores 5xx sostenidos. |
 
 ---
 
@@ -581,12 +581,12 @@ Entonces el sistema persiste el pedido asociado al usuario del JWT
 
 ---
 
-### TC-HU05-05 · Rendimiento de confirmación autenticada
+### TC-HU05-05 · Rendimiento de confirmación autenticada con flujo dependiente
 
 ```gherkin
-Dado que la confirmación de proveedor es funcionalmente estable
-Cuando se ejecuta carga moderada autenticada (10 VU, 3 min)
-Entonces el endpoint responde dentro del umbral acordado
+Dado que existen usuarios de prueba válidos y es posible obtener una cotización previa
+Cuando se ejecuta carga moderada sobre la confirmación de pedido usando token JWT y datos derivados de una cotización real o controlada
+Entonces el endpoint responde dentro del umbral acordado y persiste confirmaciones válidas sin degradación funcional
 ```
 
 | Campo | Detalle |
@@ -595,10 +595,10 @@ Entonces el endpoint responde dentro del umbral acordado
 | **Herramienta** | k6 |
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
-| **Precondiciones** | JWT de prueba. Datos de pedido controlados. |
-| **Datos de prueba** | 10 VU · 3 min · POST /api/v1/pedido/confirmar |
-| **Pasos** | Ejecutar k6 de confirmación → validar checks → analizar p95. |
-| **Resultado esperado** | p95 < 1500 ms · http_req_failed < 1% · checks > 95%. |
+| **Precondiciones** | Usuarios semilla válidos. JWT obtenible desde login. Shipment-service disponible. Idealmente posibilidad de reutilizar confirmationToken y selectedOption desde una cotización previa; si no, usar seed o fixture controlado. |
+| **Datos de prueba** | 10 VU · 3 min · POST /api/v1/pedido/confirmar · JWT válido · payload de confirmación consistente |
+| **Pasos** | Ejecutar login o reutilizar token válido → obtener o preparar datos de cotización → ejecutar confirmación bajo carga → validar status, checks y tiempos → verificar estructura de respuesta. |
+| **Resultado esperado** | p95 < 1500 ms · http_req_failed < 1% · checks > 95% · las respuestas exitosas contienen id, confirmationToken, selectedOption y createdAt · no se generan errores de autenticación ni respuestas inconsistentes por concurrencia normal. |
 
 ---
 
@@ -998,8 +998,8 @@ Entonces el sistema restaura la sesión o solicita login si no existe token vál
 
 ```gherkin
 Dado que existen usuarios de prueba precreados
-Cuando se ejecuta carga moderada de login (5-10 VU, 3 min)
-Entonces el servicio responde dentro del umbral
+Cuando se ejecuta carga moderada de login con credenciales válidas
+Entonces el servicio responde dentro del umbral y retorna tokens válidos de forma consistente
 ```
 
 | Campo | Detalle |
@@ -1008,10 +1008,10 @@ Entonces el servicio responde dentro del umbral
 | **Herramienta** | k6 |
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
-| **Precondiciones** | Usuarios precreados. BD estable. |
-| **Datos de prueba** | 5-10 VU · 3 min · POST /api/users/login |
-| **Pasos** | Ejecutar k6 de login → validar checks y presencia de token. |
-| **Resultado esperado** | p95 < 1000 ms · http_req_failed < 1% · checks > 95%. |
+| **Precondiciones** | Usuarios de prueba precreados. BD estable. User-service disponible. |
+| **Datos de prueba** | 5-10 VU · 3 min · POST /api/users/login · usuarios semilla alternados |
+| **Pasos** | Ejecutar k6 de login → alternar entre usuarios válidos → validar status, tiempos y contenido de la respuesta → verificar presencia y formato del token. |
+| **Resultado esperado** | p95 < 1000 ms · http_req_failed < 1% · checks > 95% · cada respuesta exitosa contiene accessToken no vacío, tokenType = Bearer, expiresIn y user.email consistente con la credencial usada. |
 
 ---
 
@@ -1101,12 +1101,12 @@ Entonces el sistema ignora o rechaza el userId y filtra por el JWT
 
 ---
 
-### TC-HU09-04 · Rendimiento de historial autenticado
+### TC-HU09-04 · Rendimiento de historial autenticado con dataset semilla
 
 ```gherkin
-Dado que existen usuarios autenticados con datos de prueba
-Cuando se ejecuta carga sobre la consulta de historial (10-20 VU, 5 min)
-Entonces el endpoint responde dentro del umbral acordado
+Dado que existen usuarios autenticados con pedidos previamente persistidos
+Cuando se ejecuta carga sobre la consulta del historial
+Entonces el endpoint responde dentro del umbral acordado y devuelve listas estructuralmente válidas
 ```
 
 | Campo | Detalle |
@@ -1115,10 +1115,10 @@ Entonces el endpoint responde dentro del umbral acordado
 | **Herramienta** | k6 |
 | **Estado** | Sin ejecutar |
 | **Resultado de ejecución** | — |
-| **Precondiciones** | JWT precreados. Pedidos semilla. BD estable. |
+| **Precondiciones** | JWT válidos. Pedidos semilla existentes por usuario. Shipment-service disponible. |
 | **Datos de prueba** | 10-20 VU · 5 min · GET /api/v1/pedido/mis-pedidos |
-| **Pasos** | Ejecutar k6 de historial → validar checks y estructura de lista. |
-| **Resultado esperado** | p95 < 800 ms · http_req_failed < 1% · checks > 95%. |
+| **Pasos** | Obtener o reutilizar JWT válido → ejecutar consulta de historial bajo carga → validar status, estructura del arreglo y tiempos → revisar estabilidad del endpoint durante toda la ventana de ejecución. |
+| **Resultado esperado** | p95 < 800 ms · http_req_failed < 1% · checks > 95% · la respuesta es un arreglo y cada pedido contiene al menos id, origin, destination, weight, weightUnit, priority, selectedOption y createdAt · no aparecen respuestas truncadas, vacías injustificadas ni errores 5xx recurrentes. |
 
 ---
 
