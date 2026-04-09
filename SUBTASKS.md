@@ -27,16 +27,16 @@ Permitirle al usuario agregar pedido para calcular y obtener una recomendación 
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU01-T13 (QA)** | Revisar que la HU, reglas de negocio y criterios de aceptación sean claros y testeables.
-- **HU01-T14 (QA)** | Diseñar casos de prueba para registro exitoso, validación de campos, peso fuera de rango y cobertura geográfica.
-
-### Validación técnica y funcional
-- **HU01-T15 (QA)** | Verificar el funcionamiento de los endpoints `GET /locations/autocomplete` y `POST /pedido`.
-- **HU01-T16 (QA)** | Validar el autocompletado y la restricción de ubicaciones dentro de Colombia.
-- **HU01-T17 (QA)** | Verificar la conversión de unidades y cálculo de distancia.
-- **HU01-T18 (QA)** | Validar el flujo completo desde frontend, incluyendo almacenamiento en estado global.
-- **HU01-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU01-01 (QA)** | Registro exitoso con usuario autenticado.
+- **TC-HU01-02 (QA)** | Autocompletado restringido a Colombia.
+- **TC-HU01-03 (QA)** | Registro fallido por campos vacíos.
+- **TC-HU01-04 (QA)** | Registro fallido por origen o destino fuera de Colombia.
+- **TC-HU01-05 (QA)** | Registro exitoso con peso mínimo (0.001 Kg).
+- **TC-HU01-06 (QA)** | Registro exitoso con peso máximo (70 Kg).
+- **TC-HU01-07 (QA)** | Registro fallido por peso inferior al mínimo.
+- **TC-HU01-08 (QA)** | Registro fallido por peso superior al máximo.
+- **TC-HU01-09 (QA)** | Exploratoria del formulario, autocompletado y prioridad.
+- **TC-HU01-10 (QA)** | Smoke de API autenticada para pedido.
 
 ## Estimación: 5 puntos
 
@@ -72,16 +72,8 @@ Permitir al usuario seleccionar el criterio de optimización del envío para que
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU02-T13 (QA)** | Revisar que la HU, reglas de negocio y criterios de aceptación sean claros y testeables.
-- **HU02-T14 (QA)** | Diseñar casos de prueba para selección de prioridad y validación de obligatoriedad.
-
-### Validación técnica y funcional
-- **HU02-T15 (QA)** | Verificar el funcionamiento del endpoint POST /pedidos/prioridad.
-- **HU02-T16 (QA)** | Validar que la prioridad se guarde correctamente en memoria.
-- **HU02-T17 (QA)** | Verificar la selección de prioridad en frontend y su almacenamiento en el estado global.
-- **HU02-T18 (QA)** | Validar el flujo completo de selección de prioridad y manejo de errores.
-- **HU02-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU02-01 (QA)** | Selección de prioridad de envío.
+- **TC-HU02-02 (QA)** | Registro fallido por no seleccionar prioridad.
 
 ## Estimación: 3 puntos
 
@@ -116,16 +108,13 @@ Permitir al usuario obtener la mejor opción de envío según la prioridad selec
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU03-T13 (QA)** | Revisar que la HU, las reglas de negocio y los criterios de aceptación sean claros y testeables.
-- **HU03-T14 (QA)** | Diseñar casos de prueba para recomendación por menor costo, menor tiempo y reglas de desempate.
-
-### Validación técnica y funcional
-- **HU03-T15 (QA)** | Verificar el funcionamiento del endpoint `POST /recomendacion`.
-- **HU03-T16 (QA)** | Validar que la recomendación principal corresponda a la prioridad seleccionada.
-- **HU03-T17 (QA)** | Verificar la correcta aplicación de las reglas de desempate.
-- **HU03-T18 (QA)** | Validar la pantalla de resultados y la visualización de la recomendación principal.
-- **HU03-T19 (QA)** | Ejecutar pruebas funcionales del flujo de recomendación y registrar hallazgos.
+- **TC-HU03-01 (QA)** | Recomendación principal por menor costo.
+- **TC-HU03-02 (QA)** | Recomendación principal por menor tiempo.
+- **TC-HU03-03 (QA)** | Desempate por tiempo ante empate en costo.
+- **TC-HU03-04 (QA)** | Desempate por costo ante empate en tiempo.
+- **TC-HU03-05 (QA)** | Contrato de respuesta de recomendación.
+- **TC-HU03-06 (QA)** | Carga del motor de recomendación.
+- **TC-HU03-07 (QA)** | Exploratoria de recomendación, alternativas y confirmación.
 
 ## Estimación: 8 puntos
 
@@ -160,16 +149,9 @@ Permitir al usuario visualizar opciones alternativas de proveedores de transport
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU04-T08 (QA)** | Revisar que la HU, las reglas de negocio y los criterios de aceptación sean claros y testeables.
-- **HU04-T09 (QA)** | Diseñar casos de prueba para visualización de alternativas y ausencia de alternativas.
-
-### Validación técnica y funcional
-- **HU04-T10 (QA)** | Verificar que las opciones alternativas se muestren separadas de la recomendación principal.
-- **HU04-T11 (QA)** | Validar que cada alternativa muestre proveedor, costo y tiempo de entrega.
-- **HU04-T12 (QA)** | Verificar que la recomendación principal no se repita dentro de la lista de alternativas.
-- **HU04-T13 (QA)** | Validar la selección de una opción alternativa desde la interfaz.
-- **HU04-T14 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU04-01 (QA)** | Visualización de alternativas disponibles.
+- **TC-HU04-02 (QA)** | Ausencia de opciones alternativas.
+- **TC-HU04-03 (QA)** | Recomendación principal no se duplica como alternativa.
 
 ## Estimación: 3 puntos
 
@@ -203,16 +185,11 @@ Permitir al usuario seleccionar un proveedor de envío y confirmar su selección
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU05-T12 (QA)** | Revisar que la HU, las reglas de negocio y los criterios de aceptación sean claros y testeables.
-- **HU05-T13 (QA)** | Diseñar casos de prueba para confirmación exitosa, ausencia de selección, proveedor inválido y persistencia del pedido.
-
-### Validación técnica y funcional
-- **HU05-T14 (QA)** | Verificar el funcionamiento del endpoint `POST /pedidos/confirmar`.
-- **HU05-T15 (QA)** | Validar la persistencia correcta del pedido y la respuesta devuelta por el sistema.
-- **HU05-T16 (QA)** | Verificar la selección y confirmación del proveedor en frontend, incluyendo navegación y manejo de errores.
-- **HU05-T17 (QA)** | Ejecutar pruebas funcionales del flujo completo de confirmación.
-- **HU05-T18 (QA)** | Registrar hallazgos y validar el cumplimiento de los criterios de aceptación.
+- **TC-HU05-01 (QA)** | Selección de un proveedor disponible.
+- **TC-HU05-02 (QA)** | Confirmación fallida sin seleccionar proveedor.
+- **TC-HU05-03 (QA)** | Confirmación fallida por proveedor inválido.
+- **TC-HU05-04 (QA)** | Persistencia del pedido asociada al usuario.
+- **TC-HU05-05 (QA)** | Rendimiento de confirmación autenticada.
 
 ## Estimación: 5 puntos
 ### Justificación:
@@ -238,16 +215,12 @@ Permitir al usuario visualizar en el mapa la ruta estimada entre el origen y el 
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU06-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
-- **HU06-T14 (QA)** | Diseñar casos de prueba para visualización de ruta, ajuste automático, conversión de coordenadas y ausencia de datos.
-
-### Validación técnica y funcional
-- **HU06-T15 (QA)** | Verificar el contrato de ruta expuesto por el backend y su comportamiento ante coordenadas válidas e inválidas.
-- **HU06-T16 (QA)** | Validar en frontend el dibujo correcto de la ruta, los marcadores y el ajuste automático del mapa.
-- **HU06-T17 (QA)** | Verificar el manejo correcto de errores o escenarios sin datos suficientes.
-- **HU06-T18 (QA)** | Validar la conversión de coordenadas y la consistencia visual en distintas resoluciones.
-- **HU06-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU06-01 (QA)** | Visualización de ruta con marcadores.
+- **TC-HU06-02 (QA)** | Ajuste automático del mapa a la ruta.
+- **TC-HU06-03 (QA)** | Conversión de coordenadas ORS → Leaflet.
+- **TC-HU06-04 (QA)** | Intento de visualización sin datos de ruta.
+- **TC-HU06-05 (QA)** | Manejo de error de OpenRouteService.
+- **TC-HU06-06 (QA)** | Exploratoria visual del mapa.
 
 ## Estimación: 5 puntos
 
@@ -282,16 +255,12 @@ Permitir que una persona cree una cuenta en el user-service con nombre, email y 
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU07-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
-- **HU07-T14 (QA)** | Diseñar casos de prueba para registro exitoso, email duplicado, campos vacíos y contraseña inválida.
-
-### Validación técnica y funcional
-- **HU07-T15 (QA)** | Verificar el funcionamiento del endpoint `POST /api/users/register`.
-- **HU07-T16 (QA)** | Validar que el sistema rechace emails duplicados y campos obligatorios vacíos.
-- **HU07-T17 (QA)** | Verificar que la contraseña cumpla la longitud mínima y se persista cifrada.
-- **HU07-T18 (QA)** | Validar el formulario de registro y la navegación posterior al alta exitosa.
-- **HU07-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU07-01 (QA)** | Registro exitoso de usuario.
+- **TC-HU07-02 (QA)** | Registro fallido por correo duplicado.
+- **TC-HU07-03 (QA)** | Registro fallido por campos obligatorios vacíos.
+- **TC-HU07-04 (QA)** | Registro fallido por contraseña < 8 caracteres.
+- **TC-HU07-05 (QA)** | Persistencia segura de contraseña cifrada.
+- **TC-HU07-06 (QA)** | Exploratoria del formulario de registro.
 
 ## Estimación: 5 puntos
 
@@ -326,16 +295,14 @@ Permitir que un usuario registrado inicie sesión y reciba un JWT compatible con
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU08-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
-- **HU08-T14 (QA)** | Diseñar casos de prueba para login exitoso, credenciales inválidas y acceso a rutas protegidas.
-
-### Validación técnica y funcional
-- **HU08-T15 (QA)** | Verificar el funcionamiento del endpoint `POST /api/users/login`.
-- **HU08-T16 (QA)** | Validar que el JWT devuelto cumpla el contrato de claims y expiración definida.
-- **HU08-T17 (QA)** | Verificar la protección de rutas privadas y el comportamiento ante ausencia de sesión.
-- **HU08-T18 (QA)** | Validar el manejo de errores y la restauración de sesión en frontend.
-- **HU08-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU08-01 (QA)** | Inicio de sesión exitoso con JWT.
+- **TC-HU08-02 (QA)** | Login fallido por credenciales inválidas.
+- **TC-HU08-03 (QA)** | Acceso sin autenticación a rutas protegidas.
+- **TC-HU08-04 (QA)** | Cierre de sesión bloquea acceso y limpia historial.
+- **TC-HU08-05 (QA)** | Rechazo de token inválido o expirado.
+- **TC-HU08-06 (QA)** | Restauración de sesión al recargar.
+- **TC-HU08-07 (QA)** | Rendimiento de login controlado.
+- **TC-HU08-08 (QA)** | Exploratoria de autenticación, logout e historial.
 
 ## Estimación: 3 puntos
 
@@ -370,16 +337,10 @@ Permitir que un usuario autenticado consulte únicamente los pedidos confirmados
 
 ## Subtareas QA
 
-### Análisis y diseño
-- **HU09-T13 (QA)** | Revisar que la historia, reglas de negocio y criterios de aceptación sean claros y testeables.
-- **HU09-T14 (QA)** | Diseñar casos de prueba para historial con pedidos, historial vacío y aislamiento por usuario.
-
-### Validación técnica y funcional
-- **HU09-T15 (QA)** | Verificar el funcionamiento del endpoint `GET /api/v1/pedido/mis-pedidos`.
-- **HU09-T16 (QA)** | Validar que el sistema muestre únicamente pedidos del usuario autenticado.
-- **HU09-T17 (QA)** | Verificar el comportamiento ante usuarios sin pedidos registrados.
-- **HU09-T18 (QA)** | Validar la navegación al historial y el renderizado correcto de los datos mínimos requeridos.
-- **HU09-T19 (QA)** | Ejecutar pruebas funcionales y registrar hallazgos.
+- **TC-HU09-01 (QA)** | Visualización de pedidos del usuario autenticado.
+- **TC-HU09-02 (QA)** | Usuario sin pedidos registrados.
+- **TC-HU09-03 (QA)** | La consulta no acepta userId desde frontend.
+- **TC-HU09-04 (QA)** | Rendimiento de historial autenticado.
 
 ## Estimación: 5 puntos
 

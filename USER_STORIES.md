@@ -66,57 +66,24 @@ Escenario: Intento de registro con campos vacíos
 ```
 
 ```gherkin
-Escenario: Origen fuera de Colombia
+Escenario: Origen o destino fuera de Colombia
     Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un origen fuera de Colombia y un destino dentro de Colombia
+    Cuando ingresa un origen o un destino fuera de Colombia
     Entonces el sistema no debe permitir continuar con el cálculo del envío
     Y debe informar que el envío está fuera de la cobertura permitida
 ```
 
 ```gherkin
-Escenario: Destino fuera de Colombia
+Escenario: Peso fuera del rango permitido
     Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un origen dentro de Colombia y un destino fuera de Colombia
-    Entonces el sistema no debe permitir continuar con el cálculo del envío
-    Y debe informar que el envío está fuera de la cobertura permitida
-```
-
-```gherkin
-Escenario: Origen y destino fuera de Colombia
-    Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un origen y un destino fuera de Colombia
-    Entonces el sistema no debe permitir continuar con el cálculo del envío
-    Y debe informar que el envío está fuera de la cobertura permitida
-```
-
-```gherkin
-Escenario: Peso fuera del máximo permitido
-    Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un peso mayor a 70 Kg
+    Cuando ingresa un peso menor a 0,001 Kg o mayor a 70 Kg
     Entonces el sistema no debe permitir continuar con el cálculo del envío
     Y debe informar que el peso ingresado no está cubierto por los proveedores disponibles
-```
-
-```gherkin
-Escenario: Peso fuera del mínimo permitido
-    Dado que el usuario autenticado necesita enviar un producto
-    Cuando ingresa un peso menor a 0,001 Kg
-    Entonces el sistema no debe permitir continuar con el cálculo del envío
-    Y debe informar que el peso ingresado no está cubierto por los proveedores disponibles
-```
-
-```gherkin
-Escenario: Intento de registrar pedido sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta registrar un pedido de envío
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
 ```
 
 ### Definition of Done (DoD)
 - La funcionalidad de registro de pedido está implementada.
 - El sistema permite registrar origen, destino y peso válidos para usuarios autenticados.
-- El sistema bloquea el registro de pedidos sin autenticación.
 - El sistema bloquea origen y/o destino fuera de Colombia.
 - El sistema bloquea pesos no permitidos.
 - El sistema permite autocompletar ubicaciones mediante OpenRouteService con restricción a Colombia.
@@ -154,17 +121,11 @@ Escenario: Intento de registrar pedido sin autenticación
 ### Criterios de Aceptación
 
 ```gherkin
-Escenario: Selección de prioridad por menor costo
+Escenario: Selección de prioridad de envío
     Dado que el usuario autenticado registró un pedido válido
-    Cuando selecciona prioridad de menor costo
-    Entonces el sistema debe utilizar el costo como criterio principal para generar la recomendación
-```
-
-```gherkin
-Escenario: Selección de prioridad por menor tiempo de entrega
-    Dado que el usuario autenticado registró un pedido válido
-    Cuando selecciona prioridad de menor tiempo de entrega
-    Entonces el sistema debe utilizar el tiempo de entrega como criterio principal para generar la recomendación
+    Cuando selecciona una prioridad de envío (menor costo o menor tiempo de entrega)
+    Entonces el sistema debe registrar la prioridad seleccionada
+    Y debe permitir continuar con el cálculo de la recomendación
 ```
 
 ```gherkin
@@ -175,19 +136,10 @@ Escenario: No selección de prioridad
     Y debe informar que se debe seleccionar una prioridad de envío
 ```
 
-```gherkin
-Escenario: Intento de seleccionar prioridad sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta seleccionar la prioridad del envío
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
-```
-
 ### Definition of Done (DoD)
 - La funcionalidad de elegir la prioridad del envío está implementada.
 - El sistema permite elegir entre menor costo y menor tiempo de entrega.
 - El sistema no permite calcular recomendación sin una prioridad seleccionada.
-- El sistema bloquea la selección de prioridad sin autenticación.
 - Se cumplen los criterios de aceptación definidos.
 - La historia fue validada por QA.
 
@@ -260,19 +212,10 @@ Escenario: Recomendación principal con empate en menor tiempo
     Y la opción recomendada debe corresponder a la de menor costo entre las empatadas
 ```
 
-```gherkin
-Escenario: Intento de obtener recomendación sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta obtener una recomendación de proveedor
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
-```
-
 ### Definition of Done (DoD)
 - La funcionalidad de generar una recomendación principal está implementada.
 - El sistema devuelve la opción recomendada de acuerdo con la prioridad seleccionada por el usuario autenticado.
 - El sistema maneja correctamente los casos de empate en costo o tiempo.
-- El sistema bloquea la obtención de recomendación sin autenticación.
 - Se cumplen los criterios de aceptación definidos.
 - La historia fue validada por QA.
 
@@ -323,19 +266,10 @@ Escenario: Ausencia de opciones alternativas
     Entonces el sistema debe notificar que no existen otras opciones alternativas
 ```
 
-```gherkin
-Escenario: Intento de visualizar alternativas sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta visualizar opciones alternativas de proveedores
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
-```
-
 ### Definition of Done (DoD)
 - La funcionalidad de generar opciones alternativas de proveedores está implementada.
 - El sistema devuelve opciones alternativas si existen para el caso evaluado.
 - Las opciones alternativas no duplican la recomendación principal.
-- El sistema bloquea la visualización de alternativas sin autenticación.
 - Se cumplen los criterios de aceptación definidos.
 - La historia fue validada por QA.
 
@@ -373,16 +307,9 @@ Escenario: Intento de visualizar alternativas sin autenticación
 ### Criterios de Aceptación
 
 ```gherkin
-Escenario: Selección del proveedor recomendado
+Escenario: Selección de un proveedor disponible
     Dado que el usuario autenticado visualiza la opción recomendada y las opciones disponibles
-    Cuando selecciona el proveedor recomendado
-    Entonces el sistema debe permitir continuar con el proceso del pedido
-```
-
-```gherkin
-Escenario: Selección de un proveedor alternativo
-    Dado que el usuario autenticado visualiza la opción recomendada y las opciones alternativas
-    Cuando selecciona un proveedor alternativo disponible
+    Cuando selecciona un proveedor disponible (recomendado o alternativo)
     Entonces el sistema debe permitir continuar con el proceso del pedido
 ```
 
@@ -403,21 +330,12 @@ Escenario: Persistencia de información al confirmar proveedor
     Y debe permitir continuar con el proceso del pedido
 ```
 
-```gherkin
-Escenario: Intento de confirmar proveedor sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta confirmar un proveedor
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
-```
-
 ### Definition of Done (DoD)
 - La funcionalidad de selección y confirmación del proveedor está implementada.
 - El sistema permite seleccionar un proveedor de las opciones disponibles.
 - El sistema bloquea el proceso de pedido si no se ha seleccionado un proveedor.
 - El sistema persiste la información del pedido al seleccionar y confirmar un proveedor.
 - El sistema asocia el pedido confirmado al usuario autenticado.
-- El sistema bloquea la confirmación de proveedor sin autenticación.
 - Se cumplen los criterios de aceptación definidos.
 - La historia fue validada por QA.
 
@@ -492,14 +410,6 @@ Escenario: Intento de visualización sin datos de ruta
     Y debe informar que no hay datos suficientes para visualizar el recorrido
 ```
 
-```gherkin
-Escenario: Intento de visualizar ruta sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta visualizar la ruta del envío
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
-```
-
 ### Definition of Done (DoD)
 - El mapa se visualiza correctamente en la aplicación.
 - La ruta entre origen y destino se dibuja correctamente.
@@ -507,7 +417,6 @@ Escenario: Intento de visualizar ruta sin autenticación
 - El mapa se ajusta automáticamente a la ruta.
 - Se realiza correctamente la conversión de coordenadas.
 - Se manejan los casos donde no hay datos suficientes.
-- El sistema bloquea la visualización de ruta sin autenticación.
 - Se cumplen los criterios de aceptación definidos.
 - La historia fue validada por QA.
 
@@ -712,21 +621,7 @@ Escenario: Usuario autenticado sin pedidos registrados
     Entonces el sistema debe informar que no existen pedidos registrados para ese usuario
 ```
 
-```gherkin
-Escenario: Intento de consultar pedidos de otro usuario
-    Dado que existen pedidos asociados a diferentes usuarios
-    Cuando un usuario autenticado consulta su información
-    Entonces el sistema no debe mostrar pedidos de otras cuentas
-    Y debe restringir la información a los pedidos asociados al usuario autenticado
-```
 
-```gherkin
-Escenario: Intento de consultar pedidos sin autenticación
-    Dado que una persona no ha iniciado sesión
-    Cuando intenta consultar pedidos de usuario
-    Entonces el sistema no debe permitir el acceso a la funcionalidad
-    Y debe solicitar autenticación para continuar
-```
 
 ### Definition of Done (DoD)
 - La funcionalidad de consulta de pedidos por usuario está implementada.
@@ -734,7 +629,6 @@ Escenario: Intento de consultar pedidos sin autenticación
 - El sistema muestra únicamente los pedidos correspondientes a la cuenta autenticada.
 - El sistema informa cuando un usuario no tiene pedidos registrados.
 - Se muestran los datos mínimos definidos para cada pedido.
-- El sistema bloquea la consulta de pedidos sin autenticación.
 - Se cumplen los criterios de aceptación definidos.
 - La historia fue validada por QA.
 

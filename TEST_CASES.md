@@ -1,81 +1,1162 @@
-# TEST CASES — Optimizador de Envíos
-## Microsprint 1 (2 días): HU-01, HU-02 | Microsprint 2 (2 días): HU-03, HU-05
+# Casos de Prueba — Optimizador de Envíos
+
+Este documento contiene los casos de prueba para el MVP base + MVP v2 del Optimizador de Envíos.
+
+---
+
+### Precondiciones transversales
+
+- Ambiente QA estable con `frontend`, `shipment-service`, `user-service` y PostgreSQL disponibles.
+- Proveedores mock configurados: FedEx, DHL y proveedor local.
+- OpenRouteService disponible o mock/stub controlado para autocompletado y rutas.
+- JWT configurado entre `user-service` y `shipment-service`.
+- Para funcionalidades operativas, existe un usuario autenticado salvo en los casos que validan acceso sin sesión.
+- Todos los casos quedan inicialmente en estado **Sin ejecutar** y el campo **Resultado de ejecución** se completa durante la ejecución formal de QA.
 
 ---
 
 # Microsprint 1
 
-# HU-01 — Registrar pedido de envío
+---
 
-| HU asociada | ID del Caso | Nombre del test | Prioridad | Escenario | Precondiciones | Datos | Pasos de ejecución | Resultado esperado | Estado | Resultado ejecución |
-|---|---|---|---|---|---|---|---|---|---|---|
-| HU-01 | TC-HU01-01 | Registro exitoso con datos válidos | Crítico | **Dado** que el usuario necesita enviar un producto<br>**Cuando** ingresa un origen, un destino y un peso válidos<br>**Entonces** el sistema debe registrar los datos del pedido<br>**Y** debe permitir continuar con el cálculo del envío | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = 5 Kg | 1. `POST /api/v1/pedido` con los datos de entrada<br>2. Verificar código de respuesta HTTP<br>3. Verificar `origen`, `destino` y `peso` en la respuesta<br>4. Verificar que el estado global almacena los datos del pedido | `POST /api/v1/pedido` retorna HTTP 201<br>Body contiene `origen`, `destino` y `peso` correctos<br>El sistema permite continuar con el cálculo del envío | Sin ejecutar | — |
-| HU-01 | TC-HU01-02 | Registro fallido por todos los campos vacíos | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** intenta registrar un pedido sin ingresar origen, destino o peso<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que todos los campos son obligatorios | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = ""<br>destino = ""<br>peso = (vacío) | 1. `POST /api/v1/pedido` con todos los campos vacíos<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que todos los campos son obligatorios | Sin ejecutar | — |
-| HU-01 | TC-HU01-03 | Registro fallido por campo de origen vacío | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** intenta registrar un pedido sin ingresar origen, destino o peso<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que todos los campos son obligatorios | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = ""<br>destino = "Medellín, Colombia"<br>peso = 5 Kg | 1. `POST /api/v1/pedido` con `origen` vacío<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que el campo `origen` es obligatorio | Sin ejecutar | — |
-| HU-01 | TC-HU01-04 | Registro fallido por campo de destino vacío | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** intenta registrar un pedido sin ingresar origen, destino o peso<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que todos los campos son obligatorios | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = ""<br>peso = 5 Kg | 1. `POST /api/v1/pedido` con `destino` vacío<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que el campo `destino` es obligatorio | Sin ejecutar | — |
-| HU-01 | TC-HU01-05 | Registro fallido por campo de peso vacío | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** intenta registrar un pedido sin ingresar origen, destino o peso<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que todos los campos son obligatorios | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = (vacío) | 1. `POST /api/v1/pedido` con `peso` vacío o ausente<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que el campo `peso` es obligatorio | Sin ejecutar | — |
-| HU-01 | TC-HU01-06 | Registro fallido por destino fuera de cobertura | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** ingresa un destino fuera de la cobertura de los proveedores logísticos<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que no hay proveedores disponibles para ese destino | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Buenos Aires, Argentina"<br>peso = 5 Kg | 1. `POST /api/v1/pedido` con destino fuera de Colombia<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que no hay proveedores disponibles para ese destino | Sin ejecutar | — |
-| HU-01 | TC-HU01-07 | Registro exitoso con peso en límite máximo (70 Kg) | Medio | **Dado** que el usuario necesita enviar un producto<br>**Cuando** ingresa un origen, un destino y un peso válidos<br>**Entonces** el sistema debe registrar los datos del pedido<br>**Y** debe permitir continuar con el cálculo del envío | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = 70 Kg | 1. `POST /api/v1/pedido` con peso = 70<br>2. Verificar código de respuesta HTTP<br>3. Verificar que el pedido fue registrado correctamente | `POST /api/v1/pedido` retorna HTTP 201<br>El sistema registra el pedido y permite continuar | Sin ejecutar | — |
-| HU-01 | TC-HU01-08 | Registro exitoso con peso en límite mínimo (0,001 Kg) | Medio | **Dado** que el usuario necesita enviar un producto<br>**Cuando** ingresa un origen, un destino y un peso válidos<br>**Entonces** el sistema debe registrar los datos del pedido<br>**Y** debe permitir continuar con el cálculo del envío | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = 0.001 Kg | 1. `POST /api/v1/pedido` con peso = 0.001<br>2. Verificar código de respuesta HTTP<br>3. Verificar que el pedido fue registrado correctamente | `POST /api/v1/pedido` retorna HTTP 201<br>El sistema registra el pedido y permite continuar | Sin ejecutar | — |
-| HU-01 | TC-HU01-09 | Registro fallido por peso superior al máximo (70,001 Kg) | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** ingresa un peso mayor al permitido por los proveedores logísticos<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que el peso ingresado no está cubierto por los proveedores disponibles | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = 70.001 Kg | 1. `POST /api/v1/pedido` con peso = 70.001<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que el peso ingresado no está cubierto por los proveedores disponibles | Sin ejecutar | — |
-| HU-01 | TC-HU01-10 | Registro fallido por peso inferior al mínimo (0,0009 Kg) | Alto | **Dado** que el usuario necesita enviar un producto<br>**Cuando** ingresa un peso menor al permitido por los proveedores logísticos<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que el peso ingresado no está cubierto por los proveedores disponibles | Ambiente de QA disponible y estable<br>El usuario se encuentra en el formulario de registro de pedido | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = 0.0009 Kg | 1. `POST /api/v1/pedido` con peso = 0.0009<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que el peso ingresado no está cubierto por los proveedores disponibles | Sin ejecutar | — |
+## HU-01 — Registrar pedido de envío
+
+### TC-HU01-01 · Registro exitoso con usuario autenticado
+
+```gherkin
+Dado que el usuario autenticado necesita enviar un producto
+Cuando ingresa origen "Bogotá, Colombia", destino "Medellín, Colombia" y peso 5 Kg
+Entonces el formulario avanza al cálculo conservando los datos
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Formulario disponible. |
+| **Datos de prueba** | origen = "Bogotá, Colombia" · destino = "Medellín, Colombia" · peso = 5 Kg |
+| **Pasos** | Login → ingresar datos → continuar → verificar que persisten. |
+| **Resultado esperado** | Avanza al cálculo con origen, destino y peso conservados. |
 
 ---
 
-# HU-02 — Definir prioridad del envío
+### TC-HU01-02 · Autocompletado restringido a Colombia
 
-| HU asociada | ID del Caso | Nombre del test | Prioridad | Escenario | Precondiciones | Datos | Pasos de ejecución | Resultado esperado | Estado | Resultado ejecución |
-|---|---|---|---|---|---|---|---|---|---|---|
-| HU-02 | TC-HU02-01 | Selección exitosa de prioridad por menor costo | Crítico | **Dado** que el usuario registró un pedido válido<br>**Cuando** selecciona prioridad de menor costo<br>**Entonces** el sistema debe utilizar el costo como criterio principal para generar la recomendación | Ambiente de QA disponible y estable<br>Existe un pedido válido registrado en el estado global | prioridad = "MENOR_COSTO" | 1. `POST /api/v1/pedido` con origen, destino, peso y prioridad = "MENOR_COSTO"<br>2. Verificar código de respuesta HTTP<br>3. Verificar que la prioridad se registró correctamente<br>4. Verificar que el estado global almacena la prioridad seleccionada | `POST /api/v1/pedido` retorna HTTP 201<br>La prioridad queda registrada como "MENOR_COSTO"<br>El estado global almacena la prioridad seleccionada | Sin ejecutar | — |
-| HU-02 | TC-HU02-02 | Selección exitosa de prioridad por menor tiempo de entrega | Crítico | **Dado** que el usuario registró un pedido válido<br>**Cuando** selecciona prioridad de menor tiempo de entrega<br>**Entonces** el sistema debe utilizar el tiempo de entrega como criterio para generar la recomendación | Ambiente de QA disponible y estable<br>Existe un pedido válido registrado en el estado global | prioridad = "MENOR_TIEMPO" | 1. `POST /api/v1/pedido` con origen, destino, peso y prioridad = "MENOR_TIEMPO"<br>2. Verificar código de respuesta HTTP<br>3. Verificar que la prioridad se registró correctamente<br>4. Verificar que el estado global almacena la prioridad seleccionada | `POST /api/v1/pedido` retorna HTTP 201<br>La prioridad queda registrada como "MENOR_TIEMPO"<br>El estado global almacena la prioridad seleccionada | Sin ejecutar | — |
-| HU-02 | TC-HU02-03 | Registro fallido por no seleccionar prioridad | Alto | **Dado** que el usuario registró un pedido válido<br>**Cuando** no selecciona ninguna prioridad de envío<br>**Entonces** el sistema no debe permitir continuar con el cálculo del envío<br>**Y** debe informar que se debe seleccionar una prioridad de envío | Ambiente de QA disponible y estable<br>Existe un pedido válido registrado en el estado global | prioridad = (vacío) | 1. `POST /api/v1/pedido` con origen, destino y peso válidos pero sin prioridad<br>2. Verificar código de respuesta HTTP<br>3. Verificar el mensaje de error retornado | `POST /api/v1/pedido` retorna HTTP 400<br>Mensaje indica que se debe seleccionar una prioridad de envío | Sin ejecutar | — |
+```gherkin
+Dado que el usuario autenticado registra un pedido
+Cuando escribe texto parcial en origen o destino
+Entonces el sistema muestra sugerencias de OpenRouteService restringidas a Colombia
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Endpoint o stub de OpenRouteService disponible. |
+| **Datos de prueba** | búsqueda = "Bog" · país esperado = "Colombia" |
+| **Pasos** | Escribir texto parcial → verificar sugerencias → seleccionar una válida. |
+| **Resultado esperado** | Solo aparecen ubicaciones de Colombia. La selección llena el campo. |
+
+---
+
+### TC-HU01-03 · Registro fallido por campos vacíos
+
+```gherkin
+Dado que el usuario autenticado intenta registrar un pedido
+Cuando envía origen, destino y peso vacíos
+Entonces el sistema retorna HTTP 400 indicando campos obligatorios
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Endpoint de pedido disponible. |
+| **Datos de prueba** | origen = "" · destino = "" · peso = vacío |
+| **Pasos** | POST /api/v1/pedido sin campos → verificar HTTP 400 y mensaje. |
+| **Resultado esperado** | HTTP 400. Mensaje indica campos obligatorios. No se crea pedido. |
+
+---
+
+### TC-HU01-04 · Registro fallido por origen o destino fuera de Colombia
+
+```gherkin
+Dado que el usuario autenticado necesita enviar un producto
+Cuando ingresa un origen o un destino fuera de Colombia
+Entonces el sistema bloquea el cálculo e informa fuera de cobertura
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Validación de cobertura activa. |
+| **Datos de prueba** | Caso A: origen = "Buenos Aires, Argentina" · destino = "Medellín, Colombia" · peso = 5 Kg. Caso B: origen = "Bogotá, Colombia" · destino = "Buenos Aires, Argentina" · peso = 5 Kg |
+| **Pasos** | POST /api/v1/pedido con origen o destino fuera de Colombia → verificar HTTP 400 en ambos casos. |
+| **Resultado esperado** | HTTP 400. Fuera de cobertura. No se genera recomendación. |
+
+---
+
+### TC-HU01-05 · Registro exitoso con peso mínimo (0.001 Kg)
+
+```gherkin
+Dado que el usuario autenticado ingresa datos válidos
+Cuando el peso es 0.001 Kg
+Entonces el sistema acepta el pedido
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Origen y destino dentro de Colombia. |
+| **Datos de prueba** | origen = "Bogotá" · destino = "Medellín" · peso = 0.001 Kg |
+| **Pasos** | POST /api/v1/pedido con peso mínimo → verificar HTTP 201. |
+| **Resultado esperado** | HTTP 201. Peso de 0.001 Kg aceptado. |
+
+---
+
+### TC-HU01-06 · Registro exitoso con peso máximo (70 Kg)
+
+```gherkin
+Dado que el usuario autenticado ingresa datos válidos
+Cuando el peso es 70 Kg
+Entonces el sistema acepta el pedido
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Origen y destino dentro de Colombia. |
+| **Datos de prueba** | origen = "Bogotá" · destino = "Medellín" · peso = 70 Kg |
+| **Pasos** | POST /api/v1/pedido con peso máximo → verificar HTTP 201. |
+| **Resultado esperado** | HTTP 201. Peso de 70 Kg aceptado. |
+
+---
+
+### TC-HU01-07 · Registro fallido por peso inferior al mínimo
+
+```gherkin
+Dado que el usuario autenticado ingresa origen y destino válidos
+Cuando el peso es 0.0009 Kg
+Entonces el sistema bloquea el pedido e informa peso fuera de rango
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Origen y destino dentro de Colombia. |
+| **Datos de prueba** | peso = 0.0009 Kg |
+| **Pasos** | POST /api/v1/pedido con peso < 0.001 → verificar HTTP 400. |
+| **Resultado esperado** | HTTP 400. Peso fuera del rango permitido. |
+
+---
+
+### TC-HU01-08 · Registro fallido por peso superior al máximo
+
+```gherkin
+Dado que el usuario autenticado ingresa origen y destino válidos
+Cuando el peso es 70.001 Kg
+Entonces el sistema bloquea el pedido e informa peso fuera de rango
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Origen y destino dentro de Colombia. |
+| **Datos de prueba** | peso = 70.001 Kg |
+| **Pasos** | POST /api/v1/pedido con peso > 70 → verificar HTTP 400. |
+| **Resultado esperado** | HTTP 400. Peso fuera del rango permitido. |
+
+---
+
+### TC-HU01-09 · Exploratoria del formulario, autocompletado y prioridad
+
+```gherkin
+Dado que el usuario autenticado usa el formulario de pedido y el selector de prioridad
+Cuando interactúa libremente con campos, sugerencias, prioridades y navegación
+Entonces no deben aparecer bloqueos, mensajes ambiguos ni inconsistencias visuales
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Manual exploratoria |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. DevTools. Datos válidos e inválidos. |
+| **Datos de prueba** | Búsquedas parciales · acentos · mayúsculas · separadores decimales · prioridades. |
+| **Pasos** | Explorar escritura rápida, borrado, alternar prioridades → verificar consistencia → registrar hallazgos. |
+| **Resultado esperado** | Formulario consistente. Mensajes claros. Prioridad sin estados ambiguos. |
+
+---
+
+### TC-HU01-10 · Smoke de cotización y recomendación de envío
+
+```gherkin
+Dado que el servicio de cotización está disponible y existe un payload válido
+Cuando se ejecuta un smoke de baja carga sobre el endpoint de cotización
+Entonces el servicio responde de forma estable y retorna una recomendación válida con alternativas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | k6 |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Shipment-service disponible. Payload válido. ORS disponible o mockeado. |
+| **Datos de prueba** | 1-2 VU · 30-60 s · POST /api/v1/pedido · prioridad = COST · peso = 10 Kg |
+| **Pasos** | Ejecutar script k6 smoke → enviar payload válido de cotización → validar status y checks funcionales mínimos → revisar tasa de error y tiempos de respuesta. |
+| **Resultado esperado** | HTTP 200 en >95% de las iteraciones válidas · http_req_failed < 1% · checks > 95% · la respuesta contiene recommendation.providerName, recommendation.cost, recommendation.currency, recommendation.estimatedDays y alternatives como arreglo. |
+
+---
+
+## HU-02 — Definir prioridad del envío
+
+### TC-HU02-01 · Selección de prioridad de envío
+
+```gherkin
+Dado que el usuario autenticado registró un pedido válido
+Cuando selecciona una prioridad de envío (menor costo o menor tiempo de entrega)
+Entonces el sistema registra la prioridad seleccionada y permite continuar con la recomendación
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Pedido válido en el flujo. |
+| **Datos de prueba** | prioridad = "MENOR_COSTO" o "MENOR_TIEMPO" |
+| **Pasos** | Preparar pedido → seleccionar prioridad → verificar que queda registrada → verificar continuación. |
+| **Resultado esperado** | Prioridad registrada correctamente. Sistema permite continuar con la recomendación. |
+
+---
+
+### TC-HU02-02 · Registro fallido por no seleccionar prioridad
+
+```gherkin
+Dado que el usuario autenticado registró un pedido válido
+Cuando no selecciona ninguna prioridad
+Entonces el sistema retorna HTTP 400 indicando prioridad obligatoria
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Datos de pedido válidos. |
+| **Datos de prueba** | prioridad = vacío |
+| **Pasos** | POST /api/v1/pedido sin prioridad → verificar HTTP 400 y mensaje. |
+| **Resultado esperado** | HTTP 400. Prioridad obligatoria. No se genera recomendación. |
 
 ---
 
 # Microsprint 2
 
-# HU-03 — Obtener recomendación principal de proveedor de envío
+---
 
-| HU asociada | ID del Caso | Nombre del test | Prioridad | Escenario | Precondiciones | Datos | Pasos de ejecución | Resultado esperado | Estado | Resultado ejecución |
-|---|---|---|---|---|---|---|---|---|---|---|
-| HU-03 | TC-HU03-01 | Recomendación principal según prioridad de menor costo | Crítico | **Dado** que el usuario definió la prioridad de menor costo<br>**Cuando** el sistema calcula las opciones disponibles<br>**Entonces** el sistema debe devolver la opción recomendada<br>**Y** la opción recomendada debe corresponder a la opción de menor costo disponible | Ambiente de QA disponible y estable<br>Existe un pedido válido con prioridad "MENOR_COSTO"<br>Los proveedores mock (FedEx, DHL, Local) tienen cotizaciones distintas, sin empate en costo | origen = "Bogotá, Colombia"<br>destino = "Cali, Colombia"<br>peso = 10 Kg<br>prioridad = "MENOR_COSTO"<br>---<br>FedEx: $35.000 / 2 días<br>DHL: $42.000 / 1 día<br>Local: $28.000 / 3 días | 1. `POST /api/v1/pedido` con los datos de entrada y prioridad "MENOR_COSTO"<br>2. Verificar código de respuesta HTTP<br>3. Verificar que la respuesta contiene una recomendación principal<br>4. Verificar que el proveedor recomendado corresponde al de menor costo | `POST /api/v1/pedido` retorna HTTP 201<br>La recomendación principal corresponde al proveedor "Local" (menor costo: $28.000 COP) | Sin ejecutar | — |
-| HU-03 | TC-HU03-02 | Recomendación principal según prioridad de menor tiempo | Crítico | **Dado** que el usuario definió la prioridad de menor tiempo<br>**Cuando** el sistema calcula las opciones disponibles<br>**Entonces** el sistema debe devolver la opción recomendada<br>**Y** la opción recomendada debe corresponder a la opción de menor tiempo disponible | Ambiente de QA disponible y estable<br>Existe un pedido válido con prioridad "MENOR_TIEMPO"<br>Los proveedores mock tienen tiempos de entrega distintos, sin empate | origen = "Bogotá, Colombia"<br>destino = "Cali, Colombia"<br>peso = 10 Kg<br>prioridad = "MENOR_TIEMPO"<br>---<br>FedEx: $35.000 / 2 días<br>DHL: $42.000 / 1 día<br>Local: $28.000 / 3 días | 1. `POST /api/v1/pedido` con los datos de entrada y prioridad "MENOR_TIEMPO"<br>2. Verificar código de respuesta HTTP<br>3. Verificar que la respuesta contiene una recomendación principal<br>4. Verificar que el proveedor recomendado corresponde al de menor tiempo | `POST /api/v1/pedido` retorna HTTP 201<br>La recomendación principal corresponde al proveedor "DHL" (menor tiempo: 1 día) | Sin ejecutar | — |
-| HU-03 | TC-HU03-03 | Recomendación con empate en menor costo — desempate por tiempo (Regla 7) | Crítico | **Dado** que el usuario definió la prioridad de menor costo<br>**Y** existen múltiples opciones con el mismo menor costo disponible<br>**Cuando** el sistema calcula las opciones disponibles<br>**Entonces** el sistema debe devolver una opción recomendada<br>**Y** la opción recomendada debe corresponder a la de menor tiempo de entrega | Ambiente de QA disponible y estable<br>Existe un pedido válido con prioridad "MENOR_COSTO"<br>Dos o más proveedores mock tienen el mismo costo mínimo pero distinto tiempo de entrega | origen = "Bogotá, Colombia"<br>destino = "Cali, Colombia"<br>peso = 10 Kg<br>prioridad = "MENOR_COSTO"<br>---<br>FedEx: $28.000 / 2 días<br>DHL: $42.000 / 1 día<br>Local: $28.000 / 3 días | 1. `POST /api/v1/pedido` con los datos de entrada y prioridad "MENOR_COSTO"<br>2. Verificar código de respuesta HTTP<br>3. Verificar que la respuesta contiene una recomendación principal<br>4. Verificar que ante empate en costo ($28.000), el sistema desempata por menor tiempo | `POST /api/v1/pedido` retorna HTTP 201<br>Empate en costo entre FedEx ($28.000) y Local ($28.000)<br>La recomendación principal corresponde a "FedEx" (menor tiempo entre los empatados: 2 días vs 3 días) | Sin ejecutar | — |
-| HU-03 | TC-HU03-04 | Recomendación con empate en menor tiempo — desempate por costo (Regla 8) | Crítico | **Dado** que el usuario definió la prioridad de menor tiempo<br>**Y** existen múltiples opciones con el mismo menor tiempo disponible<br>**Cuando** el sistema calcula las opciones disponibles<br>**Entonces** el sistema debe devolver una opción recomendada<br>**Y** la opción recomendada debe corresponder a la de menor costo | Ambiente de QA disponible y estable<br>Existe un pedido válido con prioridad "MENOR_TIEMPO"<br>Dos o más proveedores mock tienen el mismo tiempo de entrega mínimo pero distinto costo | origen = "Bogotá, Colombia"<br>destino = "Cali, Colombia"<br>peso = 10 Kg<br>prioridad = "MENOR_TIEMPO"<br>---<br>FedEx: $35.000 / 1 día<br>DHL: $42.000 / 1 día<br>Local: $28.000 / 3 días | 1. `POST /api/v1/pedido` con los datos de entrada y prioridad "MENOR_TIEMPO"<br>2. Verificar código de respuesta HTTP<br>3. Verificar que la respuesta contiene una recomendación principal<br>4. Verificar que ante empate en tiempo (1 día), el sistema desempata por menor costo | `POST /api/v1/pedido` retorna HTTP 201<br>Empate en tiempo entre FedEx (1 día) y DHL (1 día)<br>La recomendación principal corresponde a "FedEx" (menor costo entre los empatados: $35.000 vs $42.000) | Sin ejecutar | — |
+## HU-03 — Obtener recomendación principal de proveedor
+
+### TC-HU03-01 · Recomendación principal por menor costo
+
+```gherkin
+Dado que el usuario autenticado definió prioridad de menor costo
+Cuando el sistema calcula las opciones disponibles
+Entonces recomienda la opción de menor costo (Local = 28 000 COP)
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Proveedores mock con costos distintos. |
+| **Datos de prueba** | FedEx 35 000/2d · DHL 42 000/1d · Local 28 000/3d · prioridad = MENOR_COSTO |
+| **Pasos** | POST /api/v1/pedido → verificar recomendación principal = Local. |
+| **Resultado esperado** | Recomendación = Local. Costo = 28 000 COP. |
 
 ---
 
-# HU-05 — Seleccionar y confirmar proveedor
+### TC-HU03-02 · Recomendación principal por menor tiempo
 
-| HU asociada | ID del Caso | Nombre del test | Prioridad | Escenario | Precondiciones | Datos | Pasos de ejecución | Resultado esperado | Estado | Resultado ejecución |
-|---|---|---|---|---|---|---|---|---|---|---|
-| HU-05 | TC-HU05-01 | Selección exitosa del proveedor recomendado | Crítico | **Dado** que el sistema mostró la opción recomendada y las opciones disponibles<br>**Cuando** el usuario seleccione el proveedor deseado<br>**Entonces** el sistema debe continuar con el proceso de pedido | Ambiente de QA disponible y estable<br>El sistema generó y mostró la recomendación principal<br>El usuario se encuentra en la pantalla de resultados | proveedor_seleccionado = proveedor recomendado por el sistema | 1. Visualizar la pantalla de resultados con la recomendación principal<br>2. Seleccionar el proveedor recomendado<br>3. `POST /api/v1/pedido/confirmar` con el proveedor seleccionado<br>4. Verificar código de respuesta HTTP | `POST /api/v1/pedido/confirmar` retorna HTTP 200<br>El sistema registra la selección del proveedor y permite continuar con el proceso del pedido | Sin ejecutar | — |
-| HU-05 | TC-HU05-02 | Selección exitosa de un proveedor alternativo | Alto | **Dado** que el sistema mostró la opción recomendada y las opciones disponibles<br>**Cuando** el usuario seleccione el proveedor deseado<br>**Entonces** el sistema debe continuar con el proceso de pedido | Ambiente de QA disponible y estable<br>El sistema generó y mostró la recomendación principal y las opciones alternativas<br>El usuario se encuentra en la pantalla de resultados | proveedor_seleccionado = proveedor alternativo (distinto al recomendado) | 1. Visualizar la pantalla de resultados con la recomendación principal y las alternativas<br>2. Seleccionar un proveedor alternativo (no el recomendado)<br>3. `POST /api/v1/pedido/confirmar` con el proveedor alternativo seleccionado<br>4. Verificar código de respuesta HTTP | `POST /api/v1/pedido/confirmar` retorna HTTP 200<br>El sistema registra la selección del proveedor alternativo y permite continuar con el proceso del pedido | Sin ejecutar | — |
-| HU-05 | TC-HU05-03 | Confirmación fallida por no seleccionar proveedor | Alto | **Dado** que el sistema mostró la opción recomendada y las opciones disponibles<br>**Cuando** el usuario intenta continuar sin seleccionar un proveedor<br>**Entonces** el sistema no debe continuar con el proceso de pedido<br>**Y** debe informar que se debe seleccionar un proveedor para continuar | Ambiente de QA disponible y estable<br>El sistema generó y mostró la recomendación principal<br>El usuario se encuentra en la pantalla de resultados | proveedor_seleccionado = (ninguno) | 1. Visualizar la pantalla de resultados<br>2. No seleccionar ningún proveedor<br>3. Intentar continuar con el proceso<br>4. Verificar el mensaje de error retornado | El sistema no permite continuar con el proceso del pedido<br>Mensaje indica que se debe seleccionar un proveedor para continuar | Sin ejecutar | — |
-| HU-05 | TC-HU05-04 | Persistencia del pedido al confirmar selección de proveedor | Crítico | **Dado** que el sistema mostró la opción recomendada y las opciones disponibles<br>**Cuando** el usuario seleccione un proveedor y confirme su selección<br>**Entonces** el sistema debe persistir la información del pedido con el proveedor seleccionado<br>**Y** debe permitir continuar con el proceso del pedido | Ambiente de QA disponible y estable<br>El sistema generó y mostró la recomendación principal<br>El usuario se encuentra en la pantalla de resultados | origen = "Bogotá, Colombia"<br>destino = "Medellín, Colombia"<br>peso = 5 Kg<br>prioridad = "MENOR_COSTO"<br>proveedor_seleccionado = cualquier proveedor disponible | 1. Completar el flujo: registro → prioridad → recomendación<br>2. Seleccionar un proveedor de las opciones disponibles<br>3. `POST /api/v1/pedido/confirmar` con el proveedor seleccionado<br>4. Verificar código de respuesta HTTP<br>5. Verificar en la base de datos que el pedido fue persistido con los datos correctos | `POST /api/v1/pedido/confirmar` retorna HTTP 200<br>El pedido queda persistido en PostgreSQL con origen, destino, peso, prioridad y proveedor seleccionado<br>Los datos en base de datos coinciden con los ingresados por el usuario | Sin ejecutar | — |
+```gherkin
+Dado que el usuario autenticado definió prioridad de menor tiempo
+Cuando el sistema calcula las opciones disponibles
+Entonces recomienda la opción de menor tiempo (DHL = 1 día)
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Proveedores mock con tiempos distintos. |
+| **Datos de prueba** | FedEx 35 000/2d · DHL 42 000/1d · Local 28 000/3d · prioridad = MENOR_TIEMPO |
+| **Pasos** | POST /api/v1/pedido → verificar recomendación principal = DHL. |
+| **Resultado esperado** | Recomendación = DHL. Tiempo = 1 día. |
 
 ---
 
-# Resumen de Cobertura
+### TC-HU03-03 · Desempate por tiempo ante empate en costo
 
-## Microsprint 1 (2 días)
+```gherkin
+Dado que la prioridad es menor costo y FedEx y Local empatan en 28 000 COP
+Cuando el sistema calcula la recomendación
+Entonces recomienda FedEx (menor tiempo entre empatados: 2d vs 3d)
+```
 
-| ID | Historia de Usuario | Casos de Prueba | Positivos | Negativos | Borde | Desempate |
-|---|---|---|---|---|---|---|
-| HU-01 | Registrar Pedido de Envío | 10 | 3 | 5 | 2 | 0 |
-| HU-02 | Definir Prioridad del Envío | 3 | 2 | 1 | 0 | 0 |
-| **Subtotal MS1** | | **13** | **5** | **6** | **2** | **0** |
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Datos mock con empate en costo. |
+| **Datos de prueba** | FedEx 28 000/2d · DHL 42 000/1d · Local 28 000/3d · prioridad = MENOR_COSTO |
+| **Pasos** | POST /api/v1/pedido → verificar recomendación = FedEx (desempate por tiempo). |
+| **Resultado esperado** | Recomendación = FedEx. Desempate correcto por menor tiempo. |
 
-## Microsprint 2 (2 días)
+---
 
-| ID | Historia de Usuario | Casos de Prueba | Positivos | Negativos | Borde | Desempate |
-|---|---|---|---|---|---|---|
-| HU-03 | Obtener Recomendación Principal | 4 | 2 | 0 | 0 | 2 |
-| HU-05 | Seleccionar y Confirmar Proveedor | 4 | 3 | 1 | 0 | 0 |
-| **Subtotal MS2** | | **8** | **5** | **1** | **0** | **2** |
+### TC-HU03-04 · Desempate por costo ante empate en tiempo
 
-## Total MVP
+```gherkin
+Dado que la prioridad es menor tiempo y FedEx y DHL empatan en 1 día
+Cuando el sistema calcula la recomendación
+Entonces recomienda FedEx (menor costo entre empatados: 35 000 vs 42 000)
+```
 
-| | Casos de Prueba | Positivos | Negativos | Borde | Desempate |
-|---|---|---|---|---|---|
-| **Total** | **21** | **10** | **7** | **2** | **2** |
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Datos mock con empate en tiempo. |
+| **Datos de prueba** | FedEx 35 000/1d · DHL 42 000/1d · Local 28 000/3d · prioridad = MENOR_TIEMPO |
+| **Pasos** | POST /api/v1/pedido → verificar recomendación = FedEx (desempate por costo). |
+| **Resultado esperado** | Recomendación = FedEx. Desempate correcto por menor costo. |
+
+---
+
+### TC-HU03-05 · Contrato de respuesta de recomendación
+
+```gherkin
+Dado que el usuario autenticado solicita una recomendación válida
+Cuando la API responde
+Entonces la estructura incluye proveedor, costo, tiempoEntrega, prioridad y alternativas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Proveedores mock activos. |
+| **Datos de prueba** | Campos esperados: proveedor, costo, tiempoEntrega, prioridad, alternativas. |
+| **Pasos** | POST /api/v1/pedido → validar status → validar schema y tipos de datos. |
+| **Resultado esperado** | Contrato cumplido. Tipos consistentes. Sin campos nulos críticos. |
+
+---
+
+### TC-HU03-06 · Carga controlada del motor de recomendación
+
+```gherkin
+Dado que el flujo de recomendación es funcionalmente estable
+Cuando se ejecuta carga concurrente autenticada o no autenticada según implementación actual sobre el cálculo de recomendación
+Entonces el motor responde dentro del umbral acordado sin degradar la estructura ni la consistencia de la respuesta
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | k6 |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Shipment-service disponible. ORS mockeado o estable. Payloads válidos con prioridad COST y TIME. |
+| **Datos de prueba** | 5→25 VU · 5 min · POST /api/v1/pedido · pesos válidos · prioridades COST y TIME |
+| **Pasos** | Ejecutar k6 de carga → alternar payloads válidos → validar status, tiempos y estructura de recomendación → verificar que no aumenten errores funcionales bajo concurrencia. |
+| **Resultado esperado** | p95 < 1200 ms · http_req_failed < 1% · checks > 95% · todas las respuestas exitosas incluyen recommendation válida y alternatives consistente · no aparecen respuestas vacías, malformadas ni errores 5xx sostenidos. |
+
+---
+
+### TC-HU03-07 · Exploratoria de recomendación, alternativas y confirmación
+
+```gherkin
+Dado que el usuario visualiza recomendación, alternativas y confirma proveedor
+Cuando compara opciones, selecciona, cambia de opinión y confirma
+Entonces la pantalla comunica claramente cada paso sin inconsistencias
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Manual exploratoria |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Datos con/sin empate. 2-3 proveedores. |
+| **Datos de prueba** | Prioridades ambas · proveedores FedEx/DHL/Local · escenarios de empate. |
+| **Pasos** | Flujos de recomendación → comparar API/UI → cambiar proveedor → confirmar → volver atrás → reintentar. |
+| **Resultado esperado** | Recomendación coincide con API. Sin duplicados. Sin confirmaciones dobles. |
+
+---
+
+## HU-04 — Obtener opciones alternativas de proveedores
+
+### TC-HU04-01 · Visualización de alternativas disponibles
+
+```gherkin
+Dado que el usuario autenticado obtuvo una recomendación principal
+Y existen otras opciones disponibles
+Cuando el sistema muestra la recomendación
+Entonces muestra automáticamente las alternativas con proveedor, costo y tiempo
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Respuesta con múltiples proveedores. |
+| **Datos de prueba** | recomendado = Local · alternativas = FedEx, DHL |
+| **Pasos** | Flujo de recomendación → verificar alternativas visibles con datos completos. |
+| **Resultado esperado** | Alternativas visibles. Cada una incluye proveedor, costo y tiempo. |
+
+---
+
+### TC-HU04-02 · Ausencia de opciones alternativas
+
+```gherkin
+Dado que el usuario autenticado obtuvo una recomendación principal
+Y no existen otras opciones disponibles
+Cuando el sistema muestra la recomendación
+Entonces notifica que no existen alternativas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Mock con un solo proveedor. |
+| **Datos de prueba** | recomendado = único proveedor · alternativas = [] |
+| **Pasos** | Configurar un solo proveedor → recomendación → verificar mensaje. |
+| **Resultado esperado** | UI informa sin alternativas. No se muestra lista vacía confusa. |
+
+---
+
+### TC-HU04-03 · Recomendación principal no se duplica como alternativa
+
+```gherkin
+Dado que existen recomendación y alternativas
+Cuando se renderiza la lista de opciones
+Entonces la recomendación principal no aparece dentro de alternativas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Respuesta con recomendación y alternativas. |
+| **Datos de prueba** | recomendado = Local · alternativas esperadas ≠ Local |
+| **Pasos** | POST /api/v1/pedido → validar que alternativas no contienen al recomendado. |
+| **Resultado esperado** | Ninguna alternativa tiene el mismo proveedor que la recomendación. |
+
+---
+
+## HU-05 — Seleccionar y confirmar proveedor
+
+### TC-HU05-01 · Selección de un proveedor disponible
+
+```gherkin
+Dado que el usuario autenticado visualiza recomendación y opciones disponibles
+Cuando selecciona un proveedor disponible (recomendado o alternativo)
+Entonces el sistema permite continuar a confirmación final
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Recomendación generada. Alternativas disponibles. |
+| **Datos de prueba** | proveedorSeleccionado = recomendado o alternativo |
+| **Pasos** | Flujo de pedido → seleccionar proveedor (recomendado o alternativo) → verificar continuación. |
+| **Resultado esperado** | Selección registrada. Se permite continuar a confirmación. No se fuerza un proveedor específico. |
+
+---
+
+### TC-HU05-02 · Confirmación fallida sin seleccionar proveedor
+
+```gherkin
+Dado que el usuario autenticado visualiza opciones disponibles
+Cuando intenta continuar sin seleccionar proveedor
+Entonces el sistema retorna HTTP 400 indicando proveedor obligatorio
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Recomendación generada. |
+| **Datos de prueba** | proveedorSeleccionado = ninguno |
+| **Pasos** | POST /api/v1/pedido/confirmar sin proveedor → verificar HTTP 400. |
+| **Resultado esperado** | HTTP 400. Debe seleccionar proveedor. No se persiste pedido. |
+
+---
+
+### TC-HU05-03 · Confirmación fallida por proveedor inválido
+
+```gherkin
+Dado que el usuario autenticado tiene opciones disponibles
+Cuando intenta confirmar un proveedor que no pertenece a las opciones calculadas
+Entonces el sistema rechaza la confirmación
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. Proveedor no incluido en la respuesta. |
+| **Datos de prueba** | proveedorSeleccionado = "ProveedorInexistente" |
+| **Pasos** | Generar recomendación → POST confirmar con proveedor inválido → verificar HTTP 400/422. |
+| **Resultado esperado** | HTTP 400/422. Proveedor inválido. No se persiste pedido. |
+
+---
+
+### TC-HU05-04 · Persistencia del pedido asociada al usuario
+
+```gherkin
+Dado que el usuario autenticado selecciona y confirma proveedor
+Cuando la confirmación es exitosa
+Entonces el sistema persiste el pedido asociado al usuario del JWT
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válido. BD disponible. Pedido y recomendación generados. |
+| **Datos de prueba** | origen = "Bogotá" · destino = "Medellín" · peso = 5 Kg · prioridad = MENOR_COSTO |
+| **Pasos** | POST confirmar → verificar éxito → GET /mis-pedidos → verificar datos. |
+| **Resultado esperado** | Pedido persistido con datos correctos, asociado al usuario del JWT. |
+
+---
+
+### TC-HU05-05 · Rendimiento de confirmación autenticada con flujo dependiente
+
+```gherkin
+Dado que existen usuarios de prueba válidos y es posible obtener una cotización previa
+Cuando se ejecuta carga moderada sobre la confirmación de pedido usando token JWT y datos derivados de una cotización real o controlada
+Entonces el endpoint responde dentro del umbral acordado y persiste confirmaciones válidas sin degradación funcional
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | k6 |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuarios semilla válidos. JWT obtenible desde login. Shipment-service disponible. Idealmente posibilidad de reutilizar confirmationToken y selectedOption desde una cotización previa; si no, usar seed o fixture controlado. |
+| **Datos de prueba** | 10 VU · 3 min · POST /api/v1/pedido/confirmar · JWT válido · payload de confirmación consistente |
+| **Pasos** | Ejecutar login o reutilizar token válido → obtener o preparar datos de cotización → ejecutar confirmación bajo carga → validar status, checks y tiempos → verificar estructura de respuesta. |
+| **Resultado esperado** | p95 < 1500 ms · http_req_failed < 1% · checks > 95% · las respuestas exitosas contienen id, confirmationToken, selectedOption y createdAt · no se generan errores de autenticación ni respuestas inconsistentes por concurrencia normal. |
+
+---
+
+# Microsprint 3
+
+---
+
+## HU-06 — Visualizar ruta del envío en el mapa
+
+### TC-HU06-01 · Visualización de ruta con marcadores
+
+```gherkin
+Dado que el usuario autenticado ingresó origen y destino válidos y el sistema calculó la ruta
+Cuando visualiza el mapa
+Entonces ve la ruta dibujada con marcadores de origen y destino
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Ruta de ORS o stub. Leaflet renderizando. |
+| **Datos de prueba** | origen = "Bogotá" · destino = "Medellín" · coordenadas válidas |
+| **Pasos** | Flujo de pedido/recomendación → visualizar mapa → verificar polyline y marcadores. |
+| **Resultado esperado** | Polyline visible. Marcadores de origen y destino correctos. |
+
+---
+
+### TC-HU06-02 · Ajuste automático del mapa a la ruta
+
+```gherkin
+Dado que el sistema dibujó la ruta en el mapa
+Cuando la ruta es visible
+Entonces el mapa se ajusta automáticamente para mostrar toda la ruta
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Mapa con ruta dibujada. |
+| **Datos de prueba** | Ruta Bogotá–Medellín |
+| **Pasos** | Cargar pantalla con ruta → verificar bounds → verificar ruta completa visible. |
+| **Resultado esperado** | Leaflet ajusta bounds. No se corta polyline ni marcadores. |
+
+---
+
+### TC-HU06-03 · Conversión de coordenadas ORS → Leaflet
+
+```gherkin
+Dado que el sistema recibe coordenadas en formato [lng, lat] de ORS
+Cuando dibuja la ruta en Leaflet
+Entonces las convierte a formato [lat, lng] y la ruta se visualiza correctamente
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Stub de ORS con respuesta controlada. |
+| **Datos de prueba** | entrada ORS = [-74.0721, 4.7110] · salida Leaflet = [4.7110, -74.0721] |
+| **Pasos** | Preparar respuesta ORS → validar transformación en respuesta del backend. |
+| **Resultado esperado** | Coordenadas invertidas correctamente. Marcadores en posiciones esperadas. |
+
+---
+
+### TC-HU06-04 · Intento de visualización sin datos de ruta
+
+```gherkin
+Dado que el usuario autenticado no tiene origen/destino completo o no existe ruta calculada
+Cuando intenta visualizar el mapa
+Entonces el sistema no muestra ruta e informa datos insuficientes
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Flujo sin coordenadas completas. |
+| **Datos de prueba** | origen = vacío o ruta = null |
+| **Pasos** | Flujo sin datos suficientes → abrir mapa → verificar mensaje informativo. |
+| **Resultado esperado** | No se renderiza ruta falsa. Mensaje de datos insuficientes. Sin ruptura de pantalla. |
+
+---
+
+### TC-HU06-05 · Manejo de error de OpenRouteService
+
+```gherkin
+Dado que OpenRouteService falla o responde sin ruta
+Cuando el sistema intenta calcular la ruta estimada
+Entonces maneja el error sin bloquear el flujo principal
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Stub de ORS con error 500, timeout o respuesta vacía. JWT válido. |
+| **Datos de prueba** | respuesta ORS = error o features vacío |
+| **Pasos** | Configurar stub con falla → POST pedido → verificar respuesta controlada. |
+| **Resultado esperado** | Error controlado. Sin excepción no manejada. Cotización no falla por completo. |
+
+---
+
+### TC-HU06-06 · Exploratoria visual del mapa
+
+```gherkin
+Dado que el usuario autenticado visualiza el mapa
+Cuando cambia resoluciones, hace zoom, panea o recarga
+Entonces el mapa se mantiene usable y consistente
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Manual exploratoria |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Chrome con DevTools. Ruta válida y caso sin ruta. |
+| **Datos de prueba** | Resoluciones desktop y mobile. Rutas corta y larga. |
+| **Pasos** | Diferentes ventanas → zoom → desplazamiento → recargar → volver → registrar hallazgos. |
+| **Resultado esperado** | Mapa visible y usable. Sin errores de consola. Mensaje claro sin ruta. |
+
+---
+
+# Microsprint 4
+
+---
+
+## HU-07 — Registrar usuario
+
+### TC-HU07-01 · Registro exitoso de usuario
+
+```gherkin
+Dado que una persona desea utilizar la plataforma
+Cuando ingresa nombre "Usuario QA", correo único y contraseña "Password123"
+Entonces el sistema registra al usuario y la cuenta queda disponible para login
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Correo no existente en base. Formulario disponible. |
+| **Datos de prueba** | name = "Usuario QA" · email = "qa.unico@example.com" · password = "Password123" |
+| **Pasos** | Abrir registro → completar datos → enviar → verificar éxito → login con cuenta creada. |
+| **Resultado esperado** | Registro exitoso. Usuario persistido. Puede iniciar sesión. |
+
+---
+
+### TC-HU07-02 · Registro fallido por correo duplicado
+
+```gherkin
+Dado que ya existe un usuario con correo "usuario.existente@example.com"
+Cuando otra persona intenta registrarse con ese mismo correo
+Entonces el sistema retorna HTTP 409 e informa correo en uso
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario semilla existente. |
+| **Datos de prueba** | email = "usuario.existente@example.com" |
+| **Pasos** | Asegurar usuario semilla → POST /api/users/register con mismo email → verificar HTTP 409. |
+| **Resultado esperado** | HTTP 409. Correo en uso. No se crea duplicado. |
+
+---
+
+### TC-HU07-03 · Registro fallido por campos obligatorios vacíos
+
+```gherkin
+Dado que una persona desea crear una cuenta
+Cuando intenta registrarse sin nombre, correo o contraseña
+Entonces el sistema retorna HTTP 400 indicando campos obligatorios
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Endpoint de registro disponible. |
+| **Datos de prueba** | name = "" · email = "" · password = "" |
+| **Pasos** | POST /api/users/register sin campos → verificar HTTP 400 y mensaje. |
+| **Resultado esperado** | HTTP 400. Campos obligatorios. No se persiste usuario. |
+
+---
+
+### TC-HU07-04 · Registro fallido por contraseña < 8 caracteres
+
+```gherkin
+Dado que una persona desea crear una cuenta
+Cuando ingresa una contraseña de 6 caracteres "abc123"
+Entonces el sistema retorna HTTP 400 indicando longitud mínima de 8
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Endpoint disponible. Email único. |
+| **Datos de prueba** | password = "abc123" (6 chars) |
+| **Pasos** | POST /api/users/register con contraseña corta → verificar HTTP 400. |
+| **Resultado esperado** | HTTP 400. Longitud mínima 8 caracteres. No se persiste usuario. |
+
+---
+
+### TC-HU07-05 · Persistencia segura de contraseña cifrada
+
+```gherkin
+Dado que una persona se registra correctamente
+Cuando el sistema persiste el usuario
+Entonces la contraseña no queda almacenada en texto plano
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Acceso controlado a BD QA o capa de integración. |
+| **Datos de prueba** | password original = "Password123" |
+| **Pasos** | Registrar usuario → consultar BD → verificar hash ≠ texto plano → login funciona. |
+| **Resultado esperado** | Contraseña cifrada/hasheada. No coincide con texto plano. Login valida correctamente. |
+
+---
+
+### TC-HU07-06 · Exploratoria del formulario de registro
+
+```gherkin
+Dado que una persona usa el formulario de registro
+Cuando corrige errores, cambia foco o reintenta
+Entonces la experiencia es clara y no genera estados inconsistentes
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Manual exploratoria |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Navegador disponible. Correos válidos, duplicados e inválidos. |
+| **Datos de prueba** | Nombres con espacios · emails con mayúsculas · password límite 8 chars. |
+| **Pasos** | Explorar validaciones cliente/servidor → corregir campos → verificar redirección a login. |
+| **Resultado esperado** | Mensajes claros. Redirección post-alta correcta. Sin filtración de contraseña. |
+
+---
+
+## HU-08 — Iniciar sesión
+
+### TC-HU08-01 · Inicio de sesión exitoso con JWT
+
+```gherkin
+Dado que el usuario ya está registrado
+Cuando ingresa correo y contraseña válidos
+Entonces el sistema permite acceso y habilita funcionalidades protegidas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario registrado. Formulario de login disponible. |
+| **Datos de prueba** | email = "usuario.qa@example.com" · password = "Password123" |
+| **Pasos** | Abrir login → enviar credenciales → verificar acceso → acceder a ruta protegida. |
+| **Resultado esperado** | Login exitoso. Acceso a funcionalidades operativas. |
+
+---
+
+### TC-HU08-02 · Login fallido por credenciales inválidas
+
+```gherkin
+Dado que el usuario intenta acceder a la plataforma
+Cuando ingresa correo o contraseña incorrectos
+Entonces el sistema retorna HTTP 401 e informa credenciales inválidas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario registrado. Endpoint de login disponible. |
+| **Datos de prueba** | email = "usuario.qa@example.com" · password = "Incorrecta123" |
+| **Pasos** | POST /api/users/login con credenciales inválidas → verificar HTTP 401. |
+| **Resultado esperado** | HTTP 401. Credenciales inválidas. No se genera JWT. |
+
+---
+
+### TC-HU08-03 · Acceso sin autenticación a rutas protegidas
+
+```gherkin
+Dado que existe una funcionalidad operativa protegida (pedido, recomendación, confirmación, historial)
+Cuando una persona intenta acceder sin JWT
+Entonces el sistema bloquea el acceso y solicita autenticación
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | No se envía JWT. |
+| **Datos de prueba** | rutas protegidas = pedido, recomendación, confirmación, historial |
+| **Pasos** | Llamar cada endpoint protegido sin token → verificar HTTP 401/403. |
+| **Resultado esperado** | HTTP 401/403. No se exponen datos operativos. |
+
+---
+
+### TC-HU08-04 · Cierre de sesión bloquea acceso y limpia historial
+
+```gherkin
+Dado que el usuario A ha iniciado sesión y tiene historial visible
+Cuando cierra sesión
+Entonces el sistema bloquea rutas protegidas y limpia estado de historial
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario A autenticado con pedidos. Usuario B disponible. |
+| **Datos de prueba** | usuarioA con pedidos · usuarioB distinto |
+| **Pasos** | Login A → abrir historial → logout → verificar bloqueo → login B → verificar aislamiento. |
+| **Resultado esperado** | Token limpio. Rutas bloqueadas. Pedidos de A no visibles para B. |
+
+---
+
+### TC-HU08-05 · Rechazo de token inválido o expirado
+
+```gherkin
+Dado que el endpoint protegido requiere JWT válido
+Cuando se envía un token inválido, alterado o expirado
+Entonces el sistema rechaza la solicitud
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Endpoint protegido disponible. Token inválido preparado. |
+| **Datos de prueba** | Authorization = "Bearer token-invalido" |
+| **Pasos** | Llamar endpoint protegido con token inválido → verificar HTTP 401/403. |
+| **Resultado esperado** | HTTP 401/403. No se procesa solicitud. Sin datos expuestos. |
+
+---
+
+### TC-HU08-06 · Restauración de sesión al recargar
+
+```gherkin
+Dado que el usuario inició sesión correctamente
+Cuando recarga el navegador
+Entonces el sistema restaura la sesión o solicita login si no existe token válido
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado. Persistencia de sesión frontend configurada. |
+| **Datos de prueba** | JWT válido almacenado |
+| **Pasos** | Login → recargar → verificar sesión → logout → recargar → verificar bloqueo. |
+| **Resultado esperado** | Con token: sesión restaurada. Sin token: solicita login. |
+
+---
+
+### TC-HU08-07 · Rendimiento de login controlado
+
+```gherkin
+Dado que existen usuarios de prueba precreados
+Cuando se ejecuta carga moderada de login con credenciales válidas
+Entonces el servicio responde dentro del umbral y retorna tokens válidos de forma consistente
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | k6 |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuarios de prueba precreados. BD estable. User-service disponible. |
+| **Datos de prueba** | 5-10 VU · 3 min · POST /api/users/login · usuarios semilla alternados |
+| **Pasos** | Ejecutar k6 de login → alternar entre usuarios válidos → validar status, tiempos y contenido de la respuesta → verificar presencia y formato del token. |
+| **Resultado esperado** | p95 < 1000 ms · http_req_failed < 1% · checks > 95% · cada respuesta exitosa contiene accessToken no vacío, tokenType = Bearer, expiresIn y user.email consistente con la credencial usada. |
+
+---
+
+### TC-HU08-08 · Exploratoria de autenticación, logout e historial
+
+```gherkin
+Dado que el usuario interactúa con login, rutas protegidas, logout e historial
+Cuando alterna sesiones, recarga, usa múltiples pestañas y consulta historial
+Entonces la aplicación mantiene seguridad, claridad de estado y aislamiento de datos
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Medio |
+| **Herramienta** | Manual exploratoria |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuarios con/sin pedidos. Múltiples pestañas. Simular error de API. |
+| **Datos de prueba** | Sesiones válida/cerrada · historial con/sin pedidos · error de API. |
+| **Pasos** | Múltiples pestañas → logout parcial → atrás/adelante → validar historial → cambiar sesión → registrar hallazgos. |
+| **Resultado esperado** | Rutas bloqueadas tras logout. Estados claros. Sin mezcla de datos entre usuarios. |
+
+---
+
+## HU-09 — Consultar pedidos del usuario
+
+### TC-HU09-01 · Visualización de pedidos del usuario autenticado
+
+```gherkin
+Dado que el usuario ha iniciado sesión y existen pedidos asociados a su cuenta
+Cuando consulta su listado de pedidos
+Entonces el sistema muestra solo sus pedidos con origen, destino, peso, prioridad y proveedor
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado con pedidos confirmados. |
+| **Datos de prueba** | Pedidos con datos completos (origen, destino, peso, prioridad, proveedor). |
+| **Pasos** | Confirmar pedidos → abrir historial → verificar datos completos. |
+| **Resultado esperado** | Solo pedidos del usuario. Cada pedido con datos mínimos requeridos. |
+
+---
+
+### TC-HU09-02 · Usuario sin pedidos registrados
+
+```gherkin
+Dado que el usuario ha iniciado sesión y no existen pedidos asociados
+Cuando consulta su listado de pedidos
+Entonces el sistema informa que no existen pedidos registrados
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | Serenity Screenplay |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario autenticado sin pedidos. |
+| **Datos de prueba** | usuarioSinPedidos = true |
+| **Pasos** | Login con usuario sin pedidos → abrir historial → verificar mensaje. |
+| **Resultado esperado** | UI informa sin pedidos. Sin error técnico. |
+
+---
+
+### TC-HU09-03 · La consulta no acepta userId desde frontend
+
+```gherkin
+Dado que la propiedad del pedido se obtiene desde el JWT
+Cuando el cliente intenta forzar un userId distinto en la consulta
+Entonces el sistema ignora o rechaza el userId y filtra por el JWT
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Crítico |
+| **Herramienta** | Karate DSL |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | Usuario A autenticado. Usuario B con pedidos. |
+| **Datos de prueba** | JWT = usuario A · query/body userId = usuario B |
+| **Pasos** | GET /mis-pedidos con JWT A + userId B → verificar que no muestra pedidos de B. |
+| **Resultado esperado** | Sistema filtra por JWT. No expone datos de B. |
+
+---
+
+### TC-HU09-04 · Rendimiento de historial autenticado con dataset semilla
+
+```gherkin
+Dado que existen usuarios autenticados con pedidos previamente persistidos
+Cuando se ejecuta carga sobre la consulta del historial
+Entonces el endpoint responde dentro del umbral acordado y devuelve listas estructuralmente válidas
+```
+
+| Campo | Detalle |
+|---|---|
+| **Prioridad** | Alto |
+| **Herramienta** | k6 |
+| **Estado** | Sin ejecutar |
+| **Resultado de ejecución** | — |
+| **Precondiciones** | JWT válidos. Pedidos semilla existentes por usuario. Shipment-service disponible. |
+| **Datos de prueba** | 10-20 VU · 5 min · GET /api/v1/pedido/mis-pedidos |
+| **Pasos** | Obtener o reutilizar JWT válido → ejecutar consulta de historial bajo carga → validar status, estructura del arreglo y tiempos → revisar estabilidad del endpoint durante toda la ventana de ejecución. |
+| **Resultado esperado** | p95 < 800 ms · http_req_failed < 1% · checks > 95% · la respuesta es un arreglo y cada pedido contiene al menos id, origin, destination, weight, weightUnit, priority, selectedOption y createdAt · no aparecen respuestas truncadas, vacías injustificadas ni errores 5xx recurrentes. |
+
+---
+
+# Resumen de cobertura
+
+## Cobertura por microsprint
+
+| Microsprint | Historias | Casos | Foco principal |
+|---|---|---:|---|
+| Microsprint 1 | HU-01, HU-02 | 12 | Registro de pedido, autocompletado, cobertura Colombia, peso y prioridad. |
+| Microsprint 2 | HU-03, HU-04, HU-05 | 14 | Recomendación, desempate, alternativas, selección, confirmación y rendimiento. |
+| Microsprint 3 | HU-06 | 6 | Ruta en mapa, ORS, conversión de coordenadas, marcadores y manejo de errores. |
+| Microsprint 4 | HU-07, HU-08, HU-09 | 19 | Registro, login, JWT, logout, rutas protegidas, historial y aislamiento. |
+| **Total** | **HU-01 a HU-09** | **51** | **MVP base + MVP v2 completo** |
+
+## Cobertura por historia de usuario
+
+| ID | Historia de Usuario | Casos | Serenity | Karate | Exploratoria | k6 |
+|---|---|---:|---:|---:|---:|---:|
+| HU-01 | Registrar pedido de envío | 10 | 2 | 6 | 1 | 1 |
+| HU-02 | Definir prioridad del envío | 2 | 1 | 1 | 0 | 0 |
+| HU-03 | Obtener recomendación principal | 7 | 0 | 5 | 1 | 1 |
+| HU-04 | Obtener alternativas de proveedores | 3 | 2 | 1 | 0 | 0 |
+| HU-05 | Seleccionar y confirmar proveedor | 5 | 1 | 3 | 0 | 1 |
+| HU-06 | Visualizar ruta en el mapa | 6 | 3 | 2 | 1 | 0 |
+| HU-07 | Registrar usuario | 6 | 1 | 4 | 1 | 0 |
+| HU-08 | Iniciar sesión | 8 | 3 | 2 | 1 | 1 |
+| HU-09 | Consultar pedidos del usuario | 4 | 2 | 1 | 0 | 1 |
+| **Total** | **MVP base + MVP v2** | **51** | **15** | **25** | **5** | **5** |
+
+## Cobertura de reglas del PRD
+
+| Reglas PRD | HU cubiertas | Casos principales |
+|---|---|---|
+| Reglas 1–4 | HU-01, HU-02 | TC-HU01-01 a TC-HU01-10, TC-HU02-01 a TC-HU02-02 |
+| Reglas 5–8 | HU-03 | TC-HU03-01 a TC-HU03-07 |
+| Regla 9 | HU-04 | TC-HU04-01 a TC-HU04-03 |
+| Reglas 10–11, 24 | HU-05, HU-09 | TC-HU05-01 a TC-HU05-05, TC-HU09-01, TC-HU09-03 |
+| Reglas 12–16 | HU-06 | TC-HU06-01 a TC-HU06-06 |
+| Reglas 17–23, 28 | HU-07, HU-08 | TC-HU07-01 a TC-HU07-06, TC-HU08-01 a TC-HU08-08 |
+| Reglas 25–27 | HU-09 | TC-HU09-01 a TC-HU09-04 |
